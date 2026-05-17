@@ -24,7 +24,7 @@ const upcomingBills = [
 export default function HomePage() {
 	return (
 		<main className="app-shell">
-			<header className="top-navigation" aria-label="Primary navigation">
+			<header className="top-navigation">
 				<a
 					className="brand-mark"
 					href="#dashboard"
@@ -44,7 +44,11 @@ export default function HomePage() {
 					))}
 				</nav>
 
-				<div className="user-actions" aria-label="Logged-in user management">
+				<div
+					className="user-actions"
+					role="group"
+					aria-label="Logged-in user management"
+				>
 					<label className="theme-toggle" htmlFor="theme-switch">
 						<input
 							id="theme-switch"
