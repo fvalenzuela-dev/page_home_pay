@@ -44,7 +44,10 @@ function requireClassName(
 	}
 }
 
-function requirePropType(element: ReactElement<ElementProps>, expectedValue: string) {
+function requirePropType(
+	element: ReactElement<ElementProps>,
+	expectedValue: string,
+) {
 	if (element.props.type !== expectedValue) {
 		throw new Error(`Expected type prop to be ${expectedValue}`);
 	}
