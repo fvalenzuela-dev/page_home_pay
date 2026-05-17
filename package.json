@@ -1,0 +1,37 @@
+{
+  "name": "page-home-pay",
+  "version": "0.1.0",
+  "private": true,
+  "packageManager": "pnpm@11.1.2",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint .",
+    "lint:css": "stylelint \"app/**/*.css\"",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:coverage": "vitest run --coverage",
+    "validate": "pnpm run lint && pnpm run lint:css && pnpm run typecheck && pnpm run test:coverage && pnpm run build"
+  },
+  "dependencies": {
+    "next": "^16.0.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  },
+  "devDependencies": {
+    "@eslint/eslintrc": "^3.0.0",
+    "@types/node": "^24.0.0",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "@vitest/coverage-v8": "^4.1.6",
+    "eslint": "^9.0.0",
+    "eslint-config-next": "^16.0.0",
+    "stylelint": "^17.11.1",
+    "typescript": "^5.0.0",
+    "vitest": "^4.1.6"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": ["sharp", "unrs-resolver"]
+  }
+}

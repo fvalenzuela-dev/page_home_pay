@@ -9,9 +9,9 @@ on:
 jobs:
   verificar_version:
     name: Control de Versiones
-    uses: fvalenzuela-dev/.github/.github/workflows/version-check-new.yml@main
+    uses: fvalenzuela-dev/.github/.github/workflows/version-check-new.yml@d4f30734ca2858a553e062468515b7eb348c2365
     with:
-      version_file: "VERSION"
+      version_file: "package.json"
       base_branch: "main"
     secrets:
       GITHUB_TOKEN_CUSTOM: ${{ secrets.GITHUB_TOKEN }}
@@ -20,27 +20,40 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
 
-      - name: Set up Go
-        uses: actions/setup-go@v5
+      - name: Set up pnpm
+        # pnpm/action-setup v4 pinned to an immutable commit SHA.
+        uses: pnpm/action-setup@f40ffcd9367d9f12939873eb1018b921a783ffaa
         with:
-          go-version-file: go.mod
+          version: 11.1.2
+
+      - name: Set up Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: 22
+          cache: pnpm
 
       - name: Install dependencies
-        run: go mod download
+        run: pnpm install --frozen-lockfile
 
-      - name: Run tests with coverage
-        run: go test -coverprofile=coverage.out -covermode=atomic ./...
+      - name: Lint
+        run: pnpm run lint
 
-      - name: Convert coverage to lcov
-        run: |
-          go install github.com/jandelgado/gcov2lcov@latest
-          mkdir -p coverage
-          gcov2lcov -infile=coverage.out -outfile=coverage/lcov.info
+      - name: Lint CSS
+        run: pnpm run lint:css
+
+      - name: Type-check
+        run: pnpm run typecheck
+
+      - name: Test with coverage
+        run: pnpm run test:coverage
+
+      - name: Build
+        run: pnpm run build
 
       - name: Upload coverage report
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
           name: coverage-report
           path: coverage/lcov.info
@@ -49,7 +62,7 @@ jobs:
   codacy_coverage:
     name: Codacy Coverage
     needs: [build_and_test]
-    uses: fvalenzuela-dev/.github/.github/workflows/codacy-coverage.yml@main
+    uses: fvalenzuela-dev/.github/.github/workflows/codacy-coverage.yml@d4f30734ca2858a553e062468515b7eb348c2365
     with:
       coverage_report_path: "coverage/lcov.info"
     secrets:

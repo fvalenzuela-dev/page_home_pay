@@ -1,0 +1,36 @@
+name: Require Linked Issue
+
+on:
+  pull_request:
+    branches:
+      - develop
+    types: [opened, edited, reopened, synchronize]
+
+jobs:
+  check-linked-issue:
+    name: Check linked issue
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: read
+      issues: read
+    steps:
+      - name: Verify linked issue
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          REPO: ${{ github.repository }}
+        run: |
+          LINKED=$(gh pr view "$PR_NUMBER" \
+            --repo "$REPO" \
+            --json closingIssuesReferences \
+            --jq '.closingIssuesReferences | length')
+
+          echo "Linked issues: $LINKED"
+
+          if [ "$LINKED" -eq 0 ]; then
+            echo "This PR must link an issue in its description."
+            echo "Use one of: Closes #123, Fixes #123, Resolves #123."
+            exit 1
+          fi
+
+          echo "Linked issue found."
