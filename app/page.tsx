@@ -44,11 +44,8 @@ export default function HomePage() {
 					))}
 				</nav>
 
-				<div
-					className="user-actions"
-					role="group"
-					aria-label="Logged-in user management"
-				>
+				<fieldset className="user-actions">
+					<legend className="sr-only">Logged-in user management</legend>
 					<label className="theme-toggle" htmlFor="theme-switch">
 						<input
 							id="theme-switch"
@@ -72,7 +69,7 @@ export default function HomePage() {
 							<span>Cuenta familiar</span>
 						</span>
 					</button>
-				</div>
+				</fieldset>
 			</header>
 
 			<section

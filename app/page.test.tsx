@@ -35,13 +35,18 @@ function textFrom(node: ReactNode): string {
 		.join(" ");
 }
 
-function requirePropValue(
+function requireClassName(
 	element: ReactElement<ElementProps>,
-	propertyName: string,
-	expectedValue: unknown,
+	expectedValue: string,
 ) {
-	if (element.props[propertyName] !== expectedValue) {
-		throw new Error(`Expected ${propertyName} to be ${String(expectedValue)}`);
+	if (element.props.className !== expectedValue) {
+		throw new Error(`Expected className to be ${expectedValue}`);
+	}
+}
+
+function requirePropType(element: ReactElement<ElementProps>, expectedValue: string) {
+	if (element.props.type !== expectedValue) {
+		throw new Error(`Expected type prop to be ${expectedValue}`);
 	}
 }
 
@@ -69,29 +74,44 @@ describe("HomePage", () => {
 		const header = asElement(Children.toArray(main.props.children)[0]);
 		const headerChildren = Children.toArray(header.props.children);
 		const userActions = asElement(headerChildren[2]);
-		const [themeToggleNode, userMenuNode] = Children.toArray(
+		const [legendNode, themeToggleNode, userMenuNode] = Children.toArray(
 			userActions.props.children,
 		);
+		const legend = asElement(legendNode);
 		const themeToggle = asElement(themeToggleNode);
 		const userMenu = asElement(userMenuNode);
 
-		requirePropValue(userActions, "className", "user-actions");
-		requirePropValue(userActions, "role", "group");
-		requirePropValue(userActions, "aria-label", "Logged-in user management");
+		if (userActions.type !== "fieldset") {
+			throw new Error("Expected user actions to render a fieldset");
+		}
+		requireClassName(userActions, "user-actions");
+		if (legend.type !== "legend") {
+			throw new Error("Expected user actions to include a legend");
+		}
+		requireClassName(legend, "sr-only");
+		expect(textFrom(legend.props.children)).toContain(
+			"Logged-in user management",
+		);
 		const [themeInputNode] = Children.toArray(themeToggle.props.children);
 		const themeInput = asElement(themeInputNode);
 
 		if (themeToggle.type !== "label") {
 			throw new Error("Expected theme toggle to render a label");
 		}
-		requirePropValue(themeToggle, "className", "theme-toggle");
-		requirePropValue(themeToggle, "htmlFor", "theme-switch");
+		requireClassName(themeToggle, "theme-toggle");
+		if (themeToggle.props.htmlFor !== "theme-switch") {
+			throw new Error("Expected theme label to target the theme switch");
+		}
 		if (themeInput.type !== "input") {
 			throw new Error("Expected theme toggle control to render an input");
 		}
-		requirePropValue(themeInput, "id", "theme-switch");
-		requirePropValue(themeInput, "type", "checkbox");
-		requirePropValue(themeInput, "aria-label", "Toggle dark and light theme");
+		if (themeInput.props.id !== "theme-switch") {
+			throw new Error("Expected theme input id to be theme-switch");
+		}
+		requirePropType(themeInput, "checkbox");
+		if (themeInput.props["aria-label"] !== "Toggle dark and light theme") {
+			throw new Error("Expected theme input to have an accessible label");
+		}
 		expect(textFrom(themeToggle.props.children)).toContain("☀");
 		expect(textFrom(themeToggle.props.children)).toContain("☾");
 		expect(textFrom(themeToggle.props.children)).toContain(
