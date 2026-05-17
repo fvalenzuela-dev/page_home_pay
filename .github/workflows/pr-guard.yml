@@ -1,69 +1,9 @@
 name: PR Guard
-
 on:
   pull_request:
     branches:
-      - develop
       - main
-    types: [opened, edited, reopened, synchronize, labeled, unlabeled]
 
 jobs:
-  validate-pr-policy:
-    name: Validate PR policy
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      pull-requests: read
-    steps:
-      - name: Reject PRs targeting main
-        env:
-          BASE_REF: ${{ github.base_ref }}
-        run: |
-          if [ "$BASE_REF" = "main" ]; then
-            echo "PRs must target develop, not main."
-            exit 1
-          fi
-
-          echo "PR target is allowed."
-
-      - name: Validate branch prefix
-        env:
-          HEAD_REF: ${{ github.head_ref }}
-        run: |
-          VALID_PREFIXES="fix/ feat/ feature/ chore/ docs/ style/ refactor/ perf/ test/ build/ ci/ revert/"
-
-          IS_VALID=false
-          for PREFIX in $VALID_PREFIXES; do
-            if [[ "$HEAD_REF" == "$PREFIX"* ]]; then
-              IS_VALID=true
-              break
-            fi
-          done
-
-          if [ "$IS_VALID" = false ]; then
-            echo "Invalid branch: '$HEAD_REF'"
-            echo "Branches must use a conventional prefix: feat/, fix/, chore/, docs/, test/, build/, ci/, etc."
-            exit 1
-          fi
-
-          echo "Branch prefix is valid."
-
-      - name: Require exactly one type label
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          PR_NUMBER: ${{ github.event.pull_request.number }}
-          REPO: ${{ github.repository }}
-        run: |
-          TYPE_LABELS=$(gh pr view "$PR_NUMBER" \
-            --repo "$REPO" \
-            --json labels \
-            --jq '[.labels[].name | select(startswith("type:"))] | length')
-
-          echo "type:* labels: $TYPE_LABELS"
-
-          if [ "$TYPE_LABELS" -ne 1 ]; then
-            echo "PRs must have exactly one type:* label."
-            exit 1
-          fi
-
-          echo "Exactly one type:* label found."
+  validate:
+    uses: fvalenzuela-dev/.github/.github/workflows/check-main.yml@main
