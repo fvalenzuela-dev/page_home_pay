@@ -8,9 +8,10 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint .",
+    "lint:css": "stylelint \"app/**/*.css\"",
     "typecheck": "tsc --noEmit",
     "test": "node --test",
-    "validate": "npm run lint && npm run typecheck && npm test && npm run build"
+    "validate": "npm run lint && npm run lint:css && npm run typecheck && npm test && npm run build"
   },
   "dependencies": {
     "next": "^16.0.0",
@@ -24,6 +25,7 @@
     "@types/react-dom": "^19.0.0",
     "eslint": "^9.0.0",
     "eslint-config-next": "^16.0.0",
+    "stylelint": "^17.11.1",
     "typescript": "^5.0.0"
   }
 }
