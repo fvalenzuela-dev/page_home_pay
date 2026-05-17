@@ -93,13 +93,9 @@ describe("HomePage", () => {
 		const themeToggle = asElement(themeToggleNode);
 		const accountMenu = asElement(accountMenuNode);
 
-		if (userActions.type !== "fieldset") {
-			throw new Error("Expected user actions to render a fieldset");
-		}
+		expect(userActions.type).toBe("fieldset");
 		requireClassName(userActions, "user-actions");
-		if (legend.type !== "legend") {
-			throw new Error("Expected user actions to include a legend");
-		}
+		expect(legend.type).toBe("legend");
 		requireClassName(legend, "sr-only");
 		expect(textFrom(legend.props.children)).toContain(
 			"Logged-in user management",
@@ -107,29 +103,20 @@ describe("HomePage", () => {
 		const [themeInputNode] = Children.toArray(themeToggle.props.children);
 		const themeInput = asElement(themeInputNode);
 
-		if (themeToggle.type !== "label") {
-			throw new Error("Expected theme toggle to render a label");
-		}
+		expect(themeToggle.type).toBe("label");
 		requireClassName(themeToggle, "theme-toggle");
-		if (themeToggle.props.htmlFor !== "theme-switch") {
-			throw new Error("Expected theme label to target the theme switch");
-		}
-		if (themeInput.type !== "input") {
-			throw new Error("Expected theme toggle control to render an input");
-		}
-		if (themeInput.props.id !== "theme-switch") {
-			throw new Error("Expected theme input id to be theme-switch");
-		}
+		expect(themeToggle.props.htmlFor).toBe("theme-switch");
+		expect(themeInput.type).toBe("input");
+		expect(themeInput.props.id).toBe("theme-switch");
 		requirePropType(themeInput, "checkbox");
-		if (themeInput.props["aria-label"] !== "Toggle dark and light theme") {
-			throw new Error("Expected theme input to have an accessible label");
-		}
+		expect(themeInput.props["aria-label"]).toBe("Toggle dark and light theme");
 		expect(textFrom(themeToggle.props.children)).toContain("☀");
 		expect(textFrom(themeToggle.props.children)).toContain("☾");
 		expect(textFrom(themeToggle.props.children)).toContain(
 			"Toggle dark and light theme",
 		);
 		expect(accountMenu.props.className).toBe("account-menu");
+		expect(accountMenu.props.role).toBe("group");
 		expect(accountMenu.props["aria-label"]).toBe("User profile menu");
 		expect(textFrom(accountMenu.props.children)).not.toContain("Usuario");
 

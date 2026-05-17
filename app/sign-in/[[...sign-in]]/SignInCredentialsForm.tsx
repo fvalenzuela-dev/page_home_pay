@@ -4,26 +4,28 @@ import { useSignIn } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
 import { type FormEvent, useState } from "react";
 
-function getErrorMessage(error: unknown): string {
-	if (
-		typeof error === "object" &&
-		error !== null &&
-		"errors" in error &&
-		Array.isArray(error.errors) &&
-		error.errors.length > 0
-	) {
-		const firstError = error.errors[0] as {
-			longMessage?: string;
-			message?: string;
-		};
-		return (
-			firstError.longMessage ??
-			firstError.message ??
-			"No pudimos iniciar sesión."
-		);
+const DEFAULT_SIGN_IN_ERROR =
+	"No pudimos iniciar sesión. Revisá tus credenciales e intentá nuevamente.";
+
+type ClerkErrorLike = {
+	errors?: Array<{
+		longMessage?: string;
+		message?: string;
+	}>;
+};
+
+function getClerkErrors(error: unknown): NonNullable<ClerkErrorLike["errors"]> {
+	if (typeof error !== "object" || error === null) {
+		return [];
 	}
 
-	return "No pudimos iniciar sesión. Revisá tus credenciales e intentá nuevamente.";
+	const { errors } = error as ClerkErrorLike;
+	return Array.isArray(errors) ? errors : [];
+}
+
+function getErrorMessage(error: unknown): string {
+	const [firstError] = getClerkErrors(error);
+	return firstError?.longMessage ?? firstError?.message ?? DEFAULT_SIGN_IN_ERROR;
 }
 
 export default function SignInCredentialsForm() {
@@ -34,8 +36,7 @@ export default function SignInCredentialsForm() {
 	const [errorMessage, setErrorMessage] = useState<string | null>(null);
 	const [isSubmitting, setIsSubmitting] = useState(false);
 
-	async function handleSubmit(event: FormEvent<HTMLFormElement>) {
-		event.preventDefault();
+	async function submitCredentials() {
 
 		if (!signIn) {
 			return;
@@ -76,6 +77,11 @@ export default function SignInCredentialsForm() {
 		}
 	}
 
+	function handleSubmit(event: FormEvent<HTMLFormElement>) {
+		event.preventDefault();
+		void submitCredentials();
+	}
+
 	return (
 		<form className="auth-credentials-form" onSubmit={handleSubmit}>
 			<div className="auth-form-heading">
@@ -93,7 +99,9 @@ export default function SignInCredentialsForm() {
 					autoComplete="username"
 					required
 					value={identifier}
-					onChange={(event) => setIdentifier(event.target.value)}
+					onChange={(event) => {
+						setIdentifier(event.target.value);
+					}}
 				/>
 			</label>
 
@@ -106,7 +114,9 @@ export default function SignInCredentialsForm() {
 					autoComplete="current-password"
 					required
 					value={password}
-					onChange={(event) => setPassword(event.target.value)}
+					onChange={(event) => {
+						setPassword(event.target.value);
+					}}
 				/>
 			</label>
 

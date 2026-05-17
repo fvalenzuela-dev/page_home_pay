@@ -62,7 +62,7 @@ export default function HomePage() {
 						</span>
 						<span className="sr-only">Toggle dark and light theme</span>
 					</label>
-					<div className="account-menu" aria-label="User profile menu">
+					<div className="account-menu" role="group" aria-label="User profile menu">
 						<UserButton
 							showName
 							userProfileMode="modal"
