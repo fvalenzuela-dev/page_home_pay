@@ -33,26 +33,34 @@ pnpm run validate
 
 That command runs:
 
-| Command                  | Purpose                                 |
-| ------------------------ | --------------------------------------- |
-| `pnpm run lint`          | Checks ESLint and Next.js lint rules.   |
-| `pnpm run lint:css`      | Checks CSS with Stylelint.              |
-| `pnpm run typecheck`     | Runs TypeScript without emitting files. |
+| Command                  | Purpose                                  |
+| ------------------------ | ---------------------------------------- |
+| `pnpm run lint`          | Checks ESLint and Next.js lint rules.    |
+| `pnpm run lint:css`      | Checks CSS with Stylelint.               |
+| `pnpm run typecheck`     | Runs TypeScript without emitting files.  |
 | `pnpm run test:coverage` | Runs Vitest and generates LCOV coverage. |
-| `pnpm run build`         | Builds the Next.js application.         |
+| `pnpm run build`         | Builds the Next.js application.          |
 
 ## Required environment variables
 
 See `.env.example` for all placeholders.
 
-Current planned variables:
+Current variables:
 
-- `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY`, for the future Clerk client integration.
-- `CLERK_SECRET_KEY`, for future server-side Clerk usage.
+- `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY`, for Clerk client-side auth components.
+- `CLERK_SECRET_KEY`, for server-side Clerk helpers and middleware.
 - Optional Clerk route variables for sign-in/sign-up redirects.
 - `GEMINI_API_KEY`, for AI-assisted GitHub workflows.
 - `GH_PAT`, only for the manual discussion suggester workflow.
 - GCP deployment secrets, only when deployment workflows are enabled.
+
+## Authentication
+
+The application uses Clerk for App Router authentication:
+
+- `/sign-in` renders the Clerk sign-in flow in a full-screen split layout.
+- The Next.js request proxy protects application routes and allows public access to `/sign-in`, `/sign-up`, Next internals, and static assets.
+- Future backend calls can retrieve a Clerk token with Clerk helpers, for example `const { getToken } = await auth(); await getToken()` / `currentUser()` on the server or `useAuth().getToken()` in client components before calling an API. Backend endpoint consumption is intentionally not implemented yet.
 
 ## Workflow policy
 

@@ -15,6 +15,7 @@
     "validate": "pnpm run lint && pnpm run lint:css && pnpm run typecheck && pnpm run test:coverage && pnpm run build"
   },
   "dependencies": {
+    "@clerk/nextjs": "^7.3.5",
     "next": "^16.0.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
@@ -32,6 +33,10 @@
     "vitest": "^4.1.6"
   },
   "pnpm": {
-    "onlyBuiltDependencies": ["sharp", "unrs-resolver"]
+    "onlyBuiltDependencies": [
+      "@clerk/shared",
+      "sharp",
+      "unrs-resolver"
+    ]
   }
 }

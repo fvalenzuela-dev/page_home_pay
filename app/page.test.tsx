@@ -4,8 +4,15 @@ import {
 	type ReactElement,
 	type ReactNode,
 } from "react";
-import { describe, expect, it } from "vitest";
-import HomePage from "./page";
+import { describe, expect, it, vi } from "vitest";
+
+vi.mock("@clerk/nextjs", () => ({
+	UserButton: (props: Record<string, unknown>) => (
+		<button data-testid="user-button" data-props={props} type="button">
+			Perfil y cerrar sesión
+		</button>
+	),
+}));
 
 type ElementProps = Record<string, unknown> & {
 	children?: ReactNode;
@@ -54,7 +61,8 @@ function requirePropType(
 }
 
 describe("HomePage", () => {
-	it("renders the initial application shell with navigation", () => {
+	it("renders the initial application shell with navigation", async () => {
+		const { default: HomePage } = await import("./page");
 		const main = asElement(HomePage());
 		const [headerNode, heroNode] = Children.toArray(main.props.children);
 		const header = asElement(headerNode);
@@ -72,17 +80,18 @@ describe("HomePage", () => {
 		expect(hero.props["aria-labelledby"]).toBe("home-title");
 	});
 
-	it("includes user management and theme controls", () => {
+	it("includes theme controls and an account dropdown menu", async () => {
+		const { default: HomePage } = await import("./page");
 		const main = asElement(HomePage());
 		const header = asElement(Children.toArray(main.props.children)[0]);
 		const headerChildren = Children.toArray(header.props.children);
 		const userActions = asElement(headerChildren[2]);
-		const [legendNode, themeToggleNode, userMenuNode] = Children.toArray(
+		const [legendNode, themeToggleNode, accountMenuNode] = Children.toArray(
 			userActions.props.children,
 		);
 		const legend = asElement(legendNode);
 		const themeToggle = asElement(themeToggleNode);
-		const userMenu = asElement(userMenuNode);
+		const accountMenu = asElement(accountMenuNode);
 
 		if (userActions.type !== "fieldset") {
 			throw new Error("Expected user actions to render a fieldset");
@@ -120,11 +129,27 @@ describe("HomePage", () => {
 		expect(textFrom(themeToggle.props.children)).toContain(
 			"Toggle dark and light theme",
 		);
-		expect(userMenu.props.className).toBe("user-menu");
-		expect(textFrom(userMenu.props.children)).toContain("Cuenta familiar");
+		expect(accountMenu.props.className).toBe("account-menu");
+		expect(accountMenu.props["aria-label"]).toBe("User profile menu");
+		expect(textFrom(accountMenu.props.children)).not.toContain("Usuario");
+
+		const userButton = asElement(
+			Children.toArray(accountMenu.props.children)[0],
+		);
+		expect(userButton.props.showName).toBe(true);
+		expect(userButton.props.userProfileMode).toBe("modal");
+		expect(userButton.props.appearance).toEqual(
+			expect.objectContaining({
+				elements: expect.objectContaining({
+					userButtonTrigger: "account-menu-trigger",
+					userButtonOuterIdentifier: "account-menu-name",
+				}),
+			}),
+		);
 	});
 
-	it("links navigation items to shell sections", () => {
+	it("links navigation items to shell sections", async () => {
+		const { default: HomePage } = await import("./page");
 		const main = asElement(HomePage());
 		const header = asElement(Children.toArray(main.props.children)[0]);
 		const nav = asElement(Children.toArray(header.props.children)[1]);
@@ -147,7 +172,8 @@ describe("HomePage", () => {
 		expect(contactPanel.props.id).toBe("contacto");
 	});
 
-	it("structures future dashboard, administration, and contact sections", () => {
+	it("structures future dashboard, administration, and contact sections", async () => {
+		const { default: HomePage } = await import("./page");
 		const main = asElement(HomePage());
 		const contentGrid = asElement(Children.toArray(main.props.children)[2]);
 		const [adminPanelNode, contactPanelNode] = Children.toArray(
