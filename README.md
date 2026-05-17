@@ -33,12 +33,12 @@ npm run validate
 
 That command runs:
 
-| Command | Purpose |
-| --- | --- |
-| `npm run lint` | Checks ESLint and Next.js lint rules. |
+| Command             | Purpose                                 |
+| ------------------- | --------------------------------------- |
+| `npm run lint`      | Checks ESLint and Next.js lint rules.   |
 | `npm run typecheck` | Runs TypeScript without emitting files. |
-| `npm test` | Runs Node's built-in test runner. |
-| `npm run build` | Builds the Next.js application. |
+| `npm test`          | Runs Node's built-in test runner.       |
+| `npm run build`     | Builds the Next.js application.         |
 
 ## Required environment variables
 

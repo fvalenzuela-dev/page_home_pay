@@ -1,52 +1,56 @@
 name: Central Validation
 
 on:
-  pull_request:
-    branches:
-      - develop
   push:
-    branches:
+    branches-ignore:
+      - main
       - develop
-      - "feat/**"
-      - "feature/**"
-      - "fix/**"
-      - "chore/**"
-      - "docs/**"
-      - "style/**"
-      - "refactor/**"
-      - "perf/**"
-      - "test/**"
-      - "build/**"
-      - "ci/**"
-      - "revert/**"
 
 jobs:
-  validate:
-    name: Validate Next.js app
+  verificar_version:
+    name: Control de Versiones
+    uses: fvalenzuela-dev/.github/.github/workflows/version-check-new.yml@main
+    with:
+      version_file: "VERSION"
+      base_branch: "main"
+    secrets:
+      GITHUB_TOKEN_CUSTOM: ${{ secrets.GITHUB_TOKEN }}
+  build_and_test:
+    name: Build & Test
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
+      - name: Set up Go
+        uses: actions/setup-go@v5
         with:
-          node-version: 22
-          cache: npm
+          go-version-file: go.mod
 
       - name: Install dependencies
-        run: npm ci
+        run: go mod download
 
-      - name: Lint
-        run: npm run lint
+      - name: Run tests with coverage
+        run: go test -coverprofile=coverage.out -covermode=atomic ./...
 
-      - name: Type-check
-        run: npm run typecheck
+      - name: Convert coverage to lcov
+        run: |
+          go install github.com/jandelgado/gcov2lcov@latest
+          mkdir -p coverage
+          gcov2lcov -infile=coverage.out -outfile=coverage/lcov.info
 
-      - name: Test
-        run: npm test
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: coverage/lcov.info
+          retention-days: 1
 
-      - name: Build
-        run: npm run build
+  codacy_coverage:
+    name: Codacy Coverage
+    needs: [build_and_test]
+    uses: fvalenzuela-dev/.github/.github/workflows/codacy-coverage.yml@main
+    with:
+      coverage_report_path: "coverage/lcov.info"
+    secrets:
+      CODACY_PROJECT_TOKEN: ${{ secrets.CODACY_PROJECT_TOKEN }}
