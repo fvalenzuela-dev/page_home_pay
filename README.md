@@ -57,10 +57,5 @@ Current planned variables:
 
 - Feature, chore, fix, docs, and CI work branches target `develop`; PRs targeting `main` are rejected.
 - Pull requests to `develop` must use an accepted branch prefix such as `feat/`, `feature/`, `fix/`, `chore/`, `docs/`, `test/`, `build/`, `ci/`, or `revert/`.
-- Pull requests must link an issue using `Closes #123`, `Fixes #123`, or `Resolves #123`.
-- Pull requests must have exactly one `type:*` label.
-- CI validates linting, type-checking, tests, and production build.
-
-## Deployment workflows
-
-GCP deployment workflows are manual for now because the project does not yet include a production Dockerfile or finalized Cloud Run service names.
+- Pull requests must link a GitHub issue in their description using keywords such as `Closes #123`, `Fixes #123`, or `Resolves #123`.
+- Pull requests must have exactly one `type:*` label assigned (e.g., `type:feature`, `type:bug`) to pass validation.
