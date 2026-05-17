@@ -20,7 +20,7 @@ function getChildren(element: ReactNode): ReactNode[] {
 		: [element.props.children];
 }
 
-type ElementPredicate = (_: ElementProps) => boolean;
+type ElementPredicate = (...args: [ElementProps]) => boolean;
 
 function findElement(
 	node: ReactNode,

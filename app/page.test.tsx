@@ -91,9 +91,13 @@ describe("HomePage", () => {
 		const legend = asElement(legendNode);
 		const themeToggle = asElement(themeToggleNode);
 
-		expect(userActions.type).toBe("fieldset");
+		if (userActions.type !== "fieldset") {
+			throw new Error("Expected user actions to render a fieldset");
+		}
 		requireClassName(userActions, "user-actions");
-		expect(legend.type).toBe("legend");
+		if (legend.type !== "legend") {
+			throw new Error("Expected user actions to include a legend");
+		}
 		requireClassName(legend, "sr-only");
 		expect(textFrom(legend.props.children)).toContain(
 			"Logged-in user management",
@@ -101,7 +105,9 @@ describe("HomePage", () => {
 
 		const [themeInputNode] = Children.toArray(themeToggle.props.children);
 		const themeInput = asElement(themeInputNode);
-		expect(themeToggle.type).toBe("label");
+		if (themeToggle.type !== "label") {
+			throw new Error("Expected theme toggle to render a label");
+		}
 		requireClassName(themeToggle, "theme-toggle");
 		expect(themeToggle.props.htmlFor).toBe("theme-switch");
 		if (themeInput.type !== "input") {

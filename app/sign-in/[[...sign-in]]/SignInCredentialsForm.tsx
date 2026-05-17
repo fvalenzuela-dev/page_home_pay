@@ -23,7 +23,7 @@ function getClerkErrors(error: unknown): NonNullable<ClerkErrorLike["errors"]> {
 	return Array.isArray(errors) ? errors : [];
 }
 
-function getErrorMessage(error: unknown): string {
+export function getErrorMessage(error: unknown): string {
 	const [firstError] = getClerkErrors(error);
 	if (!firstError) {
 		return DEFAULT_SIGN_IN_ERROR;
