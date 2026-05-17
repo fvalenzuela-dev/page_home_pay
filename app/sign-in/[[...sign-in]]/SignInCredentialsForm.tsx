@@ -40,7 +40,7 @@ interface InputChangeEvent {
 }
 
 interface SignInAttempt {
-	create(_credentials: SignInCredentials): Promise<SignInResult>;
+	create(_: SignInCredentials): Promise<SignInResult>;
 	finalize(): Promise<SignInResult>;
 	status: string;
 }
