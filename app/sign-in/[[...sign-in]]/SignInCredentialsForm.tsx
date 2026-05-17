@@ -14,6 +14,24 @@ interface ClerkErrorLike {
 	}[];
 }
 
+interface SignInAttempt {
+	create: (params: {
+		identifier: string;
+		password: string;
+	}) => Promise<{ error: unknown | null }>;
+	finalize: () => Promise<{ error: unknown | null }>;
+	status: string;
+}
+
+interface SubmitCredentialsOptions {
+	signIn: SignInAttempt | null;
+	identifier: string;
+	password: string;
+	setErrorMessage: (message: string | null) => void;
+	setIsSubmitting: (isSubmitting: boolean) => void;
+	onSuccess: () => void;
+}
+
 function getClerkErrors(error: unknown): NonNullable<ClerkErrorLike["errors"]> {
 	if (typeof error !== "object" || error === null) {
 		return [];
@@ -32,6 +50,53 @@ export function getErrorMessage(error: unknown): string {
 	return firstError.longMessage ?? firstError.message ?? DEFAULT_SIGN_IN_ERROR;
 }
 
+export async function submitCredentials({
+	signIn,
+	identifier,
+	password,
+	setErrorMessage,
+	setIsSubmitting,
+	onSuccess,
+}: SubmitCredentialsOptions) {
+	if (!signIn) {
+		return;
+	}
+
+	setErrorMessage(null);
+	setIsSubmitting(true);
+
+	try {
+		const createResult = await signIn.create({
+			identifier,
+			password,
+		});
+
+		if (createResult.error) {
+			setErrorMessage(getErrorMessage(createResult.error));
+			return;
+		}
+
+		if (signIn.status === "complete") {
+			const finalizeResult = await signIn.finalize();
+			if (finalizeResult.error) {
+				setErrorMessage(getErrorMessage(finalizeResult.error));
+				return;
+			}
+
+			onSuccess();
+			return;
+		}
+
+		setErrorMessage(
+			"Tu cuenta requiere un paso adicional de verificación. Usá el flujo de Clerk configurado para completar el inicio de sesión.",
+		);
+	} catch (error) {
+		setErrorMessage(getErrorMessage(error));
+	} finally {
+		setIsSubmitting(false);
+	}
+}
+
 export default function SignInCredentialsForm() {
 	const { fetchStatus, signIn } = useSignIn();
 	const router = useRouter();
@@ -40,49 +105,18 @@ export default function SignInCredentialsForm() {
 	const [errorMessage, setErrorMessage] = useState<string | null>(null);
 	const [isSubmitting, setIsSubmitting] = useState(false);
 
-	async function submitCredentials() {
-		if (!signIn) {
-			return;
-		}
-
-		setErrorMessage(null);
-		setIsSubmitting(true);
-
-		try {
-			const createResult = await signIn.create({
-				identifier,
-				password,
-			});
-
-			if (createResult.error) {
-				setErrorMessage(getErrorMessage(createResult.error));
-				return;
-			}
-
-			if (signIn.status === "complete") {
-				const finalizeResult = await signIn.finalize();
-				if (finalizeResult.error) {
-					setErrorMessage(getErrorMessage(finalizeResult.error));
-					return;
-				}
-
-				router.push("/");
-				return;
-			}
-
-			setErrorMessage(
-				"Tu cuenta requiere un paso adicional de verificación. Usá el flujo de Clerk configurado para completar el inicio de sesión.",
-			);
-		} catch (error) {
-			setErrorMessage(getErrorMessage(error));
-		} finally {
-			setIsSubmitting(false);
-		}
-	}
-
 	function handleSubmit(event: FormEvent<HTMLFormElement>) {
 		event.preventDefault();
-		void submitCredentials();
+		void submitCredentials({
+			signIn,
+			identifier,
+			password,
+			setErrorMessage,
+			setIsSubmitting,
+			onSuccess: () => {
+				router.push("/");
+			},
+		});
 	}
 
 	return (

@@ -72,4 +72,126 @@ describe("SignInCredentialsForm", () => {
 			"No pudimos iniciar sesión. Revisá tus credenciales e intentá nuevamente.",
 		);
 	});
+
+	it("skips submission when Clerk sign-in is unavailable", async () => {
+		const { submitCredentials } = await import("./SignInCredentialsForm");
+		const setErrorMessage = vi.fn();
+		const setIsSubmitting = vi.fn();
+		const onSuccess = vi.fn();
+
+		await submitCredentials({
+			signIn: null,
+			identifier: "user@example.com",
+			password: "secret",
+			setErrorMessage,
+			setIsSubmitting,
+			onSuccess,
+		});
+
+		expect(setErrorMessage).not.toHaveBeenCalled();
+		expect(setIsSubmitting).not.toHaveBeenCalled();
+		expect(onSuccess).not.toHaveBeenCalled();
+	});
+
+	it("submits credentials and finalizes a complete Clerk session", async () => {
+		const { submitCredentials } = await import("./SignInCredentialsForm");
+		const signIn = {
+			create: vi.fn().mockResolvedValue({ error: null }),
+			finalize: vi.fn().mockResolvedValue({ error: null }),
+			status: "complete",
+		};
+		const setErrorMessage = vi.fn();
+		const setIsSubmitting = vi.fn();
+		const onSuccess = vi.fn();
+
+		await submitCredentials({
+			signIn,
+			identifier: "user@example.com",
+			password: "secret",
+			setErrorMessage,
+			setIsSubmitting,
+			onSuccess,
+		});
+
+		expect(signIn.create).toHaveBeenCalledWith({
+			identifier: "user@example.com",
+			password: "secret",
+		});
+		expect(signIn.finalize).toHaveBeenCalledOnce();
+		expect(onSuccess).toHaveBeenCalledOnce();
+		expect(setErrorMessage).toHaveBeenCalledWith(null);
+		expect(setIsSubmitting).toHaveBeenNthCalledWith(1, true);
+		expect(setIsSubmitting).toHaveBeenLastCalledWith(false);
+	});
+
+	it("shows Clerk errors from create, finalize, pending status, and thrown failures", async () => {
+		const { submitCredentials } = await import("./SignInCredentialsForm");
+		const setErrorMessage = vi.fn();
+		const setIsSubmitting = vi.fn();
+		const onSuccess = vi.fn();
+
+		await submitCredentials({
+			signIn: {
+				create: vi.fn().mockResolvedValue({
+					error: { errors: [{ message: "Create failed" }] },
+				}),
+				finalize: vi.fn(),
+				status: "needs_identifier",
+			},
+			identifier: "user@example.com",
+			password: "secret",
+			setErrorMessage,
+			setIsSubmitting,
+			onSuccess,
+		});
+		expect(setErrorMessage).toHaveBeenCalledWith("Create failed");
+
+		await submitCredentials({
+			signIn: {
+				create: vi.fn().mockResolvedValue({ error: null }),
+				finalize: vi.fn().mockResolvedValue({
+					error: { errors: [{ message: "Finalize failed" }] },
+				}),
+				status: "complete",
+			},
+			identifier: "user@example.com",
+			password: "secret",
+			setErrorMessage,
+			setIsSubmitting,
+			onSuccess,
+		});
+		expect(setErrorMessage).toHaveBeenCalledWith("Finalize failed");
+
+		await submitCredentials({
+			signIn: {
+				create: vi.fn().mockResolvedValue({ error: null }),
+				finalize: vi.fn(),
+				status: "needs_second_factor",
+			},
+			identifier: "user@example.com",
+			password: "secret",
+			setErrorMessage,
+			setIsSubmitting,
+			onSuccess,
+		});
+		expect(setErrorMessage).toHaveBeenCalledWith(
+			"Tu cuenta requiere un paso adicional de verificación. Usá el flujo de Clerk configurado para completar el inicio de sesión.",
+		);
+
+		await submitCredentials({
+			signIn: {
+				create: vi.fn().mockRejectedValue({
+					errors: [{ message: "Network failed" }],
+				}),
+				finalize: vi.fn(),
+				status: "needs_identifier",
+			},
+			identifier: "user@example.com",
+			password: "secret",
+			setErrorMessage,
+			setIsSubmitting,
+			onSuccess,
+		});
+		expect(setErrorMessage).toHaveBeenCalledWith("Network failed");
+	});
 });
