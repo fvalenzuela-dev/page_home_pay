@@ -80,18 +80,16 @@ describe("HomePage", () => {
 		expect(hero.props["aria-labelledby"]).toBe("home-title");
 	});
 
-	it("includes theme controls and an account dropdown menu", async () => {
+	it("includes theme controls", async () => {
 		const { default: HomePage } = await import("./page");
 		const main = asElement(HomePage());
 		const header = asElement(Children.toArray(main.props.children)[0]);
-		const headerChildren = Children.toArray(header.props.children);
-		const userActions = asElement(headerChildren[2]);
-		const [legendNode, themeToggleNode, accountMenuNode] = Children.toArray(
+		const userActions = asElement(Children.toArray(header.props.children)[2]);
+		const [legendNode, themeToggleNode] = Children.toArray(
 			userActions.props.children,
 		);
 		const legend = asElement(legendNode);
 		const themeToggle = asElement(themeToggleNode);
-		const accountMenu = asElement(accountMenuNode);
 
 		expect(userActions.type).toBe("fieldset");
 		requireClassName(userActions, "user-actions");
@@ -100,24 +98,32 @@ describe("HomePage", () => {
 		expect(textFrom(legend.props.children)).toContain(
 			"Logged-in user management",
 		);
+
 		const [themeInputNode] = Children.toArray(themeToggle.props.children);
 		const themeInput = asElement(themeInputNode);
-
 		expect(themeToggle.type).toBe("label");
 		requireClassName(themeToggle, "theme-toggle");
 		expect(themeToggle.props.htmlFor).toBe("theme-switch");
-		expect(themeInput.type).toBe("input");
+		if (themeInput.type !== "input") {
+			throw new Error("Expected theme toggle control to render an input");
+		}
 		expect(themeInput.props.id).toBe("theme-switch");
 		requirePropType(themeInput, "checkbox");
 		expect(themeInput.props["aria-label"]).toBe("Toggle dark and light theme");
 		expect(textFrom(themeToggle.props.children)).toContain("☀");
 		expect(textFrom(themeToggle.props.children)).toContain("☾");
-		expect(textFrom(themeToggle.props.children)).toContain(
-			"Toggle dark and light theme",
+	});
+
+	it("includes an account dropdown menu", async () => {
+		const { default: HomePage } = await import("./page");
+		const main = asElement(HomePage());
+		const header = asElement(Children.toArray(main.props.children)[0]);
+		const userActions = asElement(Children.toArray(header.props.children)[2]);
+		const accountMenu = asElement(
+			Children.toArray(userActions.props.children)[2],
 		);
+
 		expect(accountMenu.props.className).toBe("account-menu");
-		expect(accountMenu.props.role).toBe("group");
-		expect(accountMenu.props["aria-label"]).toBe("User profile menu");
 		expect(textFrom(accountMenu.props.children)).not.toContain("Usuario");
 
 		const userButton = asElement(

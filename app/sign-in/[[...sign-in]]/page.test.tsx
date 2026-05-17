@@ -20,9 +20,11 @@ function getChildren(element: ReactNode): ReactNode[] {
 		: [element.props.children];
 }
 
+type ElementPredicate = (_: ElementProps) => boolean;
+
 function findElement(
 	node: ReactNode,
-	predicate: (elementProps: ElementProps) => boolean,
+	predicate: ElementPredicate,
 ): ReactNode | undefined {
 	if (isValidElement<ElementProps>(node) && predicate(node.props)) {
 		return node;

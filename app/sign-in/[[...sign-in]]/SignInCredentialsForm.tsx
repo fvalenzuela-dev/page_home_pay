@@ -7,12 +7,12 @@ import { type FormEvent, useState } from "react";
 const DEFAULT_SIGN_IN_ERROR =
 	"No pudimos iniciar sesión. Revisá tus credenciales e intentá nuevamente.";
 
-type ClerkErrorLike = {
-	errors?: Array<{
+interface ClerkErrorLike {
+	errors?: {
 		longMessage?: string;
 		message?: string;
-	}>;
-};
+	}[];
+}
 
 function getClerkErrors(error: unknown): NonNullable<ClerkErrorLike["errors"]> {
 	if (typeof error !== "object" || error === null) {
@@ -25,7 +25,11 @@ function getClerkErrors(error: unknown): NonNullable<ClerkErrorLike["errors"]> {
 
 function getErrorMessage(error: unknown): string {
 	const [firstError] = getClerkErrors(error);
-	return firstError?.longMessage ?? firstError?.message ?? DEFAULT_SIGN_IN_ERROR;
+	if (!firstError) {
+		return DEFAULT_SIGN_IN_ERROR;
+	}
+
+	return firstError.longMessage ?? firstError.message ?? DEFAULT_SIGN_IN_ERROR;
 }
 
 export default function SignInCredentialsForm() {
@@ -37,7 +41,6 @@ export default function SignInCredentialsForm() {
 	const [isSubmitting, setIsSubmitting] = useState(false);
 
 	async function submitCredentials() {
-
 		if (!signIn) {
 			return;
 		}
