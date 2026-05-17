@@ -40,20 +40,8 @@ jobs:
       - name: Type-check
         run: npm run typecheck
 
-      - name: Test
-        run: npm test
-
-      - name: Generate LCOV baseline
-        run: |
-          mkdir -p coverage
-          : > coverage/lcov.info
-          while IFS= read -r file; do
-            echo "TN:" >> coverage/lcov.info
-            echo "SF:$file" >> coverage/lcov.info
-            awk 'NF { printf "DA:%d,0\n", NR }' "$file" >> coverage/lcov.info
-            echo "end_of_record" >> coverage/lcov.info
-          done < <(find app -type f \( -name "*.ts" -o -name "*.tsx" \) | sort)
-          test -s coverage/lcov.info
+      - name: Test with coverage
+        run: npm run test:coverage
 
       - name: Build
         run: npm run build

@@ -9,6 +9,9 @@ out/
 build/
 dist/
 
+# Coverage
+coverage/
+
 # Environment
 .env
 .env*.local
