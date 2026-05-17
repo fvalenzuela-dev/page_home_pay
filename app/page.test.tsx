@@ -4,7 +4,7 @@ import {
 	type ReactElement,
 	type ReactNode,
 } from "react";
-import { assert, describe, expect, it } from "vitest";
+import { describe, expect, it } from "vitest";
 import HomePage from "./page";
 
 type ElementProps = Record<string, unknown> & {
@@ -33,6 +33,16 @@ function textFrom(node: ReactNode): string {
 			return "";
 		})
 		.join(" ");
+}
+
+function requirePropValue(
+	element: ReactElement<ElementProps>,
+	propertyName: string,
+	expectedValue: unknown,
+) {
+	if (element.props[propertyName] !== expectedValue) {
+		throw new Error(`Expected ${propertyName} to be ${String(expectedValue)}`);
+	}
 }
 
 describe("HomePage", () => {
@@ -65,25 +75,23 @@ describe("HomePage", () => {
 		const themeToggle = asElement(themeToggleNode);
 		const userMenu = asElement(userMenuNode);
 
-		assert.equal(userActions.props.className, "user-actions");
-		assert.equal(userActions.props.role, "group");
-		assert.equal(
-			userActions.props["aria-label"],
-			"Logged-in user management",
-		);
+		requirePropValue(userActions, "className", "user-actions");
+		requirePropValue(userActions, "role", "group");
+		requirePropValue(userActions, "aria-label", "Logged-in user management");
 		const [themeInputNode] = Children.toArray(themeToggle.props.children);
 		const themeInput = asElement(themeInputNode);
 
-		assert.equal(themeToggle.type, "label");
-		assert.equal(themeToggle.props.className, "theme-toggle");
-		assert.equal(themeToggle.props.htmlFor, "theme-switch");
-		assert.equal(themeInput.type, "input");
-		assert.equal(themeInput.props.id, "theme-switch");
-		assert.equal(themeInput.props.type, "checkbox");
-		assert.equal(
-			themeInput.props["aria-label"],
-			"Toggle dark and light theme",
-		);
+		if (themeToggle.type !== "label") {
+			throw new Error("Expected theme toggle to render a label");
+		}
+		requirePropValue(themeToggle, "className", "theme-toggle");
+		requirePropValue(themeToggle, "htmlFor", "theme-switch");
+		if (themeInput.type !== "input") {
+			throw new Error("Expected theme toggle control to render an input");
+		}
+		requirePropValue(themeInput, "id", "theme-switch");
+		requirePropValue(themeInput, "type", "checkbox");
+		requirePropValue(themeInput, "aria-label", "Toggle dark and light theme");
 		expect(textFrom(themeToggle.props.children)).toContain("☀");
 		expect(textFrom(themeToggle.props.children)).toContain("☾");
 		expect(textFrom(themeToggle.props.children)).toContain(
