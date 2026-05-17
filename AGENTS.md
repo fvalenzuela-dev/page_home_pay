@@ -2,11 +2,32 @@
 
 Version: 2026-05-17
 
+This file defines strict project rules for coding agents working in this repository.
+
+## Examples
+
+Expected validation for a TypeScript application change:
+
+```bash
+pnpm run lint
+pnpm run typecheck
+```
+
+Expected response before a risky dependency change:
+
+```text
+Explain the trade-off, identify the affected files, and wait for explicit approval before editing dependency files.
+```
+
+## Rule Keywords and Escape Hatch
+
 Priority legend:
 
-- **MUST**: Required for every applicable change.
-- **SHOULD**: Default approach unless the task gives a stronger reason.
-- **DO NOT**: Prohibited without explicit user approval.
+- **MUST (mandatory)**: Required for every applicable change.
+- **SHOULD (recommended)**: Default approach unless the task gives a stronger reason.
+- **DO NOT (prohibited)**: The full phrase means the action is banned without explicit user approval.
+
+Mandatory-rule escape hatch: a **MUST** or **DO NOT** rule may be bypassed only when a higher-priority user or system instruction requires it, tooling is unavailable after a reasonable attempt, or an urgent production fix makes the rule impossible to satisfy safely. When using this hatch, state the exception, reason, and validation performed.
 
 ## Identity and Scope
 
@@ -22,7 +43,10 @@ Priority legend:
 
 - **MUST** read the relevant files before editing.
 - **MUST** keep changes limited to the requested task.
-- **MUST** run `pnpm run lint` after application, test, TypeScript, config, or lint-rule changes.
+- **MUST** run `pnpm run lint` after application code changes.
+- **MUST** run `pnpm run lint` after test code changes.
+- **MUST** run `pnpm run lint` after TypeScript or TSX changes.
+- **MUST** run `pnpm run lint` after config or lint-rule changes.
 - **MUST** run `pnpm run typecheck` after TypeScript or TSX changes.
 - **MUST** run the targeted Vitest file after changing application behavior or tests covered by that file.
 - **SHOULD** run broader validation when a change crosses multiple app areas.
