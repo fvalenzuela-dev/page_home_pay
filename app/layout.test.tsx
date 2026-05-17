@@ -1,6 +1,19 @@
-import { renderToStaticMarkup } from "react-dom/server";
+import { isValidElement, type ReactElement, type ReactNode } from "react";
 import { describe, expect, it } from "vitest";
 import RootLayout, { metadata } from "./layout";
+
+type ElementProps = Record<string, unknown> & {
+	children?: ReactNode;
+};
+
+function expectElement(node: ReactNode, type: string): ReactElement<ElementProps> {
+	expect(isValidElement(node)).toBe(true);
+
+	const element = node as ReactElement<ElementProps>;
+	expect(element.type).toBe(type);
+
+	return element;
+}
 
 describe("RootLayout", () => {
 	it("exports default metadata", () => {
@@ -11,13 +24,11 @@ describe("RootLayout", () => {
 	});
 
 	it("renders children inside the application document", () => {
-		const html = renderToStaticMarkup(
-			<RootLayout>
-				<main>Test content</main>
-			</RootLayout>,
-		);
+		const child = <main>Test content</main>;
+		const html = expectElement(RootLayout({ children: child }), "html");
+		const body = expectElement(html.props.children, "body");
 
-		expect(html).toContain('<html lang="en">');
-		expect(html).toContain("Test content");
+		expect(html.props.lang).toBe("en");
+		expect(body.props.children).toBe(child);
 	});
 });
