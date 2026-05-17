@@ -18,6 +18,11 @@ type ElementProps = Record<string, unknown> & {
 	children?: ReactNode;
 };
 
+async function renderHomePageElement() {
+	const { default: HomePage } = await import("./page");
+	return asElement(HomePage());
+}
+
 function asElement(node: ReactNode): ReactElement<ElementProps> {
 	if (!isValidElement<ElementProps>(node)) {
 		throw new Error("Expected a React element");
@@ -51,38 +56,37 @@ function requireClassName(
 	}
 }
 
-function requirePropType(
+function requirePropValue(
 	element: ReactElement<ElementProps>,
-	expectedValue: string,
+	propName: string,
+	expectedValue: unknown,
 ) {
-	if (element.props.type !== expectedValue) {
-		throw new Error(`Expected type prop to be ${expectedValue}`);
+	if (element.props[propName] !== expectedValue) {
+		throw new Error(`Expected ${propName} prop to be ${String(expectedValue)}`);
 	}
 }
 
 describe("HomePage", () => {
 	it("renders the initial application shell with navigation", async () => {
-		const { default: HomePage } = await import("./page");
-		const main = asElement(HomePage());
+		const main = await renderHomePageElement();
 		const [headerNode, heroNode] = Children.toArray(main.props.children);
 		const header = asElement(headerNode);
 		const hero = asElement(heroNode);
 
 		expect(main.type).toBe("main");
-		expect(main.props.className).toBe("app-shell");
+		requireClassName(main, "app-shell");
 		expect(main.props["data-theme"]).toBeUndefined();
-		expect(header.props.className).toBe("top-navigation");
+		requireClassName(header, "top-navigation");
 		expect(header.props["aria-label"]).toBeUndefined();
 		expect(textFrom(header.props.children)).toContain("Dashboard");
 		expect(textFrom(header.props.children)).toContain("Administración");
 		expect(textFrom(header.props.children)).toContain("Contacto");
-		expect(hero.props.className).toBe("hero-section");
-		expect(hero.props["aria-labelledby"]).toBe("home-title");
+		requireClassName(hero, "hero-section");
+		requirePropValue(hero, "aria-labelledby", "home-title");
 	});
 
 	it("includes theme controls", async () => {
-		const { default: HomePage } = await import("./page");
-		const main = asElement(HomePage());
+		const main = await renderHomePageElement();
 		const header = asElement(Children.toArray(main.props.children)[0]);
 		const userActions = asElement(Children.toArray(header.props.children)[2]);
 		const [legendNode, themeToggleNode] = Children.toArray(
@@ -109,27 +113,26 @@ describe("HomePage", () => {
 			throw new Error("Expected theme toggle to render a label");
 		}
 		requireClassName(themeToggle, "theme-toggle");
-		expect(themeToggle.props.htmlFor).toBe("theme-switch");
+		requirePropValue(themeToggle, "htmlFor", "theme-switch");
 		if (themeInput.type !== "input") {
 			throw new Error("Expected theme toggle control to render an input");
 		}
-		expect(themeInput.props.id).toBe("theme-switch");
-		requirePropType(themeInput, "checkbox");
-		expect(themeInput.props["aria-label"]).toBe("Toggle dark and light theme");
+		requirePropValue(themeInput, "id", "theme-switch");
+		requirePropValue(themeInput, "type", "checkbox");
+		requirePropValue(themeInput, "aria-label", "Toggle dark and light theme");
 		expect(textFrom(themeToggle.props.children)).toContain("☀");
 		expect(textFrom(themeToggle.props.children)).toContain("☾");
 	});
 
 	it("includes an account dropdown menu", async () => {
-		const { default: HomePage } = await import("./page");
-		const main = asElement(HomePage());
+		const main = await renderHomePageElement();
 		const header = asElement(Children.toArray(main.props.children)[0]);
 		const userActions = asElement(Children.toArray(header.props.children)[2]);
 		const accountMenu = asElement(
 			Children.toArray(userActions.props.children)[2],
 		);
 
-		expect(accountMenu.props.className).toBe("account-menu");
+		requireClassName(accountMenu, "account-menu");
 		expect(textFrom(accountMenu.props.children)).not.toContain("Usuario");
 
 		const userButton = asElement(
@@ -148,8 +151,7 @@ describe("HomePage", () => {
 	});
 
 	it("links navigation items to shell sections", async () => {
-		const { default: HomePage } = await import("./page");
-		const main = asElement(HomePage());
+		const main = await renderHomePageElement();
 		const header = asElement(Children.toArray(main.props.children)[0]);
 		const nav = asElement(Children.toArray(header.props.children)[1]);
 		const navLinks = Children.toArray(nav.props.children).map(asElement);
@@ -166,14 +168,13 @@ describe("HomePage", () => {
 			"#administración",
 			"#contacto",
 		]);
-		expect(hero.props.id).toBe("dashboard");
-		expect(adminPanel.props.id).toBe("administración");
-		expect(contactPanel.props.id).toBe("contacto");
+		requirePropValue(hero, "id", "dashboard");
+		requirePropValue(adminPanel, "id", "administración");
+		requirePropValue(contactPanel, "id", "contacto");
 	});
 
 	it("structures future dashboard, administration, and contact sections", async () => {
-		const { default: HomePage } = await import("./page");
-		const main = asElement(HomePage());
+		const main = await renderHomePageElement();
 		const contentGrid = asElement(Children.toArray(main.props.children)[2]);
 		const [adminPanelNode, contactPanelNode] = Children.toArray(
 			contentGrid.props.children,
@@ -181,9 +182,9 @@ describe("HomePage", () => {
 		const adminPanel = asElement(adminPanelNode);
 		const contactPanel = asElement(contactPanelNode);
 
-		expect(contentGrid.props.className).toBe("content-grid");
-		expect(adminPanel.props.id).toBe("administración");
-		expect(contactPanel.props.id).toBe("contacto");
+		requireClassName(contentGrid, "content-grid");
+		requirePropValue(adminPanel, "id", "administración");
+		requirePropValue(contactPanel, "id", "contacto");
 		expect(textFrom(adminPanel.props.children)).toContain("Próximos pagos");
 		expect(textFrom(adminPanel.props.children)).toContain("Pending");
 		expect(textFrom(adminPanel.props.children)).toContain("Paid");

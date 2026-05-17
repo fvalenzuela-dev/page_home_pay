@@ -2,35 +2,57 @@
 
 import { useSignIn } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
-import { type FormEvent, useState } from "react";
+import { useState } from "react";
 
 const DEFAULT_SIGN_IN_ERROR =
 	"No pudimos iniciar sesión. Revisá tus credenciales e intentá nuevamente.";
 
+interface ClerkErrorDetail {
+	longMessage?: string | null;
+	message?: string | null;
+}
+
 interface ClerkErrorLike {
-	errors?: {
-		longMessage?: string;
-		message?: string;
-	}[];
+	errors?: ClerkErrorDetail[];
+}
+
+interface SignInCredentials {
+	identifier: string;
+	password: string;
+}
+
+interface SignInResult {
+	error: unknown;
+}
+
+type SubmitErrorHandler = (value: string | null) => void;
+type SubmitStateHandler = (value: boolean) => void;
+type InputValueHandler = (value: string) => void;
+
+interface FormSubmitEvent {
+	preventDefault: () => void;
+}
+
+interface InputChangeEvent {
+	target: {
+		value: string;
+	};
 }
 
 interface SignInAttempt {
-	create: (params: {
-		identifier: string;
-		password: string;
-	}) => Promise<{ error: unknown | null }>;
-	finalize: () => Promise<{ error: unknown | null }>;
+	create: (credentials: SignInCredentials) => Promise<SignInResult>;
+	finalize: () => Promise<SignInResult>;
 	status: string;
 }
 
-interface SubmitCredentialsOptions {
+interface SubmitCredentialsOptions extends SignInCredentials {
 	signIn: SignInAttempt | null;
-	identifier: string;
-	password: string;
-	setErrorMessage: (message: string | null) => void;
-	setIsSubmitting: (isSubmitting: boolean) => void;
+	setErrorMessage: SubmitErrorHandler;
+	setIsSubmitting: SubmitStateHandler;
 	onSuccess: () => void;
 }
+
+type SubmitHandlerOptions = SubmitCredentialsOptions;
 
 function getClerkErrors(error: unknown): NonNullable<ClerkErrorLike["errors"]> {
 	if (typeof error !== "object" || error === null) {
@@ -43,11 +65,24 @@ function getClerkErrors(error: unknown): NonNullable<ClerkErrorLike["errors"]> {
 
 export function getErrorMessage(error: unknown): string {
 	const [firstError] = getClerkErrors(error);
-	if (!firstError) {
+	if (firstError === undefined) {
 		return DEFAULT_SIGN_IN_ERROR;
 	}
 
-	return firstError.longMessage ?? firstError.message ?? DEFAULT_SIGN_IN_ERROR;
+	return firstError.longMessage || firstError.message || DEFAULT_SIGN_IN_ERROR;
+}
+
+export function createInputChangeHandler(setValue: InputValueHandler) {
+	return (event: InputChangeEvent) => {
+		setValue(event.target.value);
+	};
+}
+
+export function createSubmitHandler(options: SubmitHandlerOptions) {
+	return (event: FormSubmitEvent) => {
+		event.preventDefault();
+		void submitCredentials(options);
+	};
 }
 
 export async function submitCredentials({
@@ -105,19 +140,16 @@ export default function SignInCredentialsForm() {
 	const [errorMessage, setErrorMessage] = useState<string | null>(null);
 	const [isSubmitting, setIsSubmitting] = useState(false);
 
-	function handleSubmit(event: FormEvent<HTMLFormElement>) {
-		event.preventDefault();
-		void submitCredentials({
-			signIn,
-			identifier,
-			password,
-			setErrorMessage,
-			setIsSubmitting,
-			onSuccess: () => {
-				router.push("/");
-			},
-		});
-	}
+	const handleSubmit = createSubmitHandler({
+		signIn,
+		identifier,
+		password,
+		setErrorMessage,
+		setIsSubmitting,
+		onSuccess: () => {
+			router.push("/");
+		},
+	});
 
 	return (
 		<form className="auth-credentials-form" onSubmit={handleSubmit}>
@@ -136,9 +168,7 @@ export default function SignInCredentialsForm() {
 					autoComplete="username"
 					required
 					value={identifier}
-					onChange={(event) => {
-						setIdentifier(event.target.value);
-					}}
+					onChange={createInputChangeHandler(setIdentifier)}
 				/>
 			</label>
 
@@ -151,9 +181,7 @@ export default function SignInCredentialsForm() {
 					autoComplete="current-password"
 					required
 					value={password}
-					onChange={(event) => {
-						setPassword(event.target.value);
-					}}
+					onChange={createInputChangeHandler(setPassword)}
 				/>
 			</label>
 

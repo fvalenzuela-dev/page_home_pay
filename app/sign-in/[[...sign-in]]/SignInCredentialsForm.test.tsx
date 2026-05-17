@@ -1,6 +1,14 @@
 import { renderToStaticMarkup } from "react-dom/server";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+const SIGN_IN_FORM_MODULE = "./SignInCredentialsForm";
+const TEST_IDENTIFIER = "user@example.com";
+const TEST_PASSWORD = "secret";
+const EXTRA_VERIFICATION_MESSAGE =
+	"Tu cuenta requiere un paso adicional de verificación. Usá el flujo de Clerk configurado para completar el inicio de sesión.";
+const DEFAULT_ERROR_MESSAGE =
+	"No pudimos iniciar sesión. Revisá tus credenciales e intentá nuevamente.";
+
 const pushMock = vi.fn();
 const useSignInMock = vi.fn();
 
@@ -13,6 +21,31 @@ vi.mock("next/navigation", () => ({
 		push: pushMock,
 	}),
 }));
+
+async function loadSignInCredentialsForm() {
+	return import(SIGN_IN_FORM_MODULE);
+}
+
+async function renderFormMarkup() {
+	const { default: SignInCredentialsForm } = await loadSignInCredentialsForm();
+	return renderToStaticMarkup(<SignInCredentialsForm />);
+}
+
+function requireMarkup(markup: string, expectedContent: string) {
+	if (!markup.includes(expectedContent)) {
+		throw new Error(`Expected rendered form to include ${expectedContent}`);
+	}
+}
+
+function makeSubmitOptions() {
+	return {
+		identifier: TEST_IDENTIFIER,
+		password: TEST_PASSWORD,
+		setErrorMessage: vi.fn(),
+		setIsSubmitting: vi.fn(),
+		onSuccess: vi.fn(),
+	};
+}
 
 describe("SignInCredentialsForm", () => {
 	beforeEach(() => {
@@ -28,18 +61,15 @@ describe("SignInCredentialsForm", () => {
 	});
 
 	it("renders identifier and password inputs in the same form step", async () => {
-		const { default: SignInCredentialsForm } = await import(
-			"./SignInCredentialsForm"
-		);
-		const html = renderToStaticMarkup(<SignInCredentialsForm />);
+		const markup = await renderFormMarkup();
 
-		expect(html).toContain("auth-credentials-form");
-		expect(html).toContain('name="identifier"');
-		expect(html).toContain('autoComplete="username"');
-		expect(html).toContain('name="password"');
-		expect(html).toContain('type="password"');
-		expect(html).toContain('autoComplete="current-password"');
-		expect(html).toContain("Ingresar");
+		requireMarkup(markup, "auth-credentials-form");
+		requireMarkup(markup, 'name="identifier"');
+		requireMarkup(markup, 'autoComplete="username"');
+		requireMarkup(markup, 'name="password"');
+		requireMarkup(markup, 'type="password"');
+		requireMarkup(markup, 'autoComplete="current-password"');
+		requireMarkup(markup, "Ingresar");
 	});
 
 	it("disables submit while Clerk is unavailable", async () => {
@@ -47,17 +77,14 @@ describe("SignInCredentialsForm", () => {
 			fetchStatus: "idle",
 			signIn: null,
 		});
-		const { default: SignInCredentialsForm } = await import(
-			"./SignInCredentialsForm"
-		);
-		const html = renderToStaticMarkup(<SignInCredentialsForm />);
+		const markup = await renderFormMarkup();
 
-		expect(html).toContain('class="auth-submit-button"');
-		expect(html).toContain("disabled");
+		requireMarkup(markup, 'class="auth-submit-button"');
+		requireMarkup(markup, "disabled");
 	});
 
 	it("maps Clerk and fallback errors safely", async () => {
-		const { getErrorMessage } = await import("./SignInCredentialsForm");
+		const { getErrorMessage } = await loadSignInCredentialsForm();
 
 		expect(
 			getErrorMessage({ errors: [{ longMessage: "Credenciales inválidas" }] }),
@@ -65,70 +92,73 @@ describe("SignInCredentialsForm", () => {
 		expect(getErrorMessage({ errors: [{ message: "Error corto" }] })).toBe(
 			"Error corto",
 		);
-		expect(getErrorMessage(null)).toBe(
-			"No pudimos iniciar sesión. Revisá tus credenciales e intentá nuevamente.",
-		);
-		expect(getErrorMessage({ errors: "invalid" })).toBe(
-			"No pudimos iniciar sesión. Revisá tus credenciales e intentá nuevamente.",
-		);
+		expect(getErrorMessage(null)).toBe(DEFAULT_ERROR_MESSAGE);
+		expect(getErrorMessage({ errors: "invalid" })).toBe(DEFAULT_ERROR_MESSAGE);
+	});
+
+	it("updates controlled input state from field change events", async () => {
+		const { createInputChangeHandler } = await loadSignInCredentialsForm();
+		const setValue = vi.fn();
+
+		createInputChangeHandler(setValue)({ target: { value: TEST_IDENTIFIER } });
+
+		expect(setValue).toHaveBeenCalledWith(TEST_IDENTIFIER);
+	});
+
+	it("prevents the native form submission before submitting credentials", async () => {
+		const { createSubmitHandler } = await loadSignInCredentialsForm();
+		const options = makeSubmitOptions();
+		const preventDefault = vi.fn();
+
+		createSubmitHandler({ signIn: null, ...options })({ preventDefault });
+		await Promise.resolve();
+
+		expect(preventDefault).toHaveBeenCalledOnce();
+		expect(options.setErrorMessage).not.toHaveBeenCalled();
 	});
 
 	it("skips submission when Clerk sign-in is unavailable", async () => {
-		const { submitCredentials } = await import("./SignInCredentialsForm");
-		const setErrorMessage = vi.fn();
-		const setIsSubmitting = vi.fn();
-		const onSuccess = vi.fn();
+		const { submitCredentials } = await loadSignInCredentialsForm();
+		const options = makeSubmitOptions();
 
 		await submitCredentials({
 			signIn: null,
-			identifier: "user@example.com",
-			password: "secret",
-			setErrorMessage,
-			setIsSubmitting,
-			onSuccess,
+			...options,
 		});
 
-		expect(setErrorMessage).not.toHaveBeenCalled();
-		expect(setIsSubmitting).not.toHaveBeenCalled();
-		expect(onSuccess).not.toHaveBeenCalled();
+		expect(options.setErrorMessage).not.toHaveBeenCalled();
+		expect(options.setIsSubmitting).not.toHaveBeenCalled();
+		expect(options.onSuccess).not.toHaveBeenCalled();
 	});
 
 	it("submits credentials and finalizes a complete Clerk session", async () => {
-		const { submitCredentials } = await import("./SignInCredentialsForm");
+		const { submitCredentials } = await loadSignInCredentialsForm();
 		const signIn = {
 			create: vi.fn().mockResolvedValue({ error: null }),
 			finalize: vi.fn().mockResolvedValue({ error: null }),
 			status: "complete",
 		};
-		const setErrorMessage = vi.fn();
-		const setIsSubmitting = vi.fn();
-		const onSuccess = vi.fn();
+		const options = makeSubmitOptions();
 
 		await submitCredentials({
 			signIn,
-			identifier: "user@example.com",
-			password: "secret",
-			setErrorMessage,
-			setIsSubmitting,
-			onSuccess,
+			...options,
 		});
 
 		expect(signIn.create).toHaveBeenCalledWith({
-			identifier: "user@example.com",
-			password: "secret",
+			identifier: TEST_IDENTIFIER,
+			password: TEST_PASSWORD,
 		});
 		expect(signIn.finalize).toHaveBeenCalledOnce();
-		expect(onSuccess).toHaveBeenCalledOnce();
-		expect(setErrorMessage).toHaveBeenCalledWith(null);
-		expect(setIsSubmitting).toHaveBeenNthCalledWith(1, true);
-		expect(setIsSubmitting).toHaveBeenLastCalledWith(false);
+		expect(options.onSuccess).toHaveBeenCalledOnce();
+		expect(options.setErrorMessage).toHaveBeenCalledWith(null);
+		expect(options.setIsSubmitting).toHaveBeenNthCalledWith(1, true);
+		expect(options.setIsSubmitting).toHaveBeenLastCalledWith(false);
 	});
 
-	it("shows Clerk errors from create, finalize, pending status, and thrown failures", async () => {
-		const { submitCredentials } = await import("./SignInCredentialsForm");
-		const setErrorMessage = vi.fn();
-		const setIsSubmitting = vi.fn();
-		const onSuccess = vi.fn();
+	it("shows Clerk errors returned while creating a session", async () => {
+		const { submitCredentials } = await loadSignInCredentialsForm();
+		const options = makeSubmitOptions();
 
 		await submitCredentials({
 			signIn: {
@@ -138,13 +168,15 @@ describe("SignInCredentialsForm", () => {
 				finalize: vi.fn(),
 				status: "needs_identifier",
 			},
-			identifier: "user@example.com",
-			password: "secret",
-			setErrorMessage,
-			setIsSubmitting,
-			onSuccess,
+			...options,
 		});
-		expect(setErrorMessage).toHaveBeenCalledWith("Create failed");
+
+		expect(options.setErrorMessage).toHaveBeenCalledWith("Create failed");
+	});
+
+	it("shows Clerk errors returned while finalizing a complete session", async () => {
+		const { submitCredentials } = await loadSignInCredentialsForm();
+		const options = makeSubmitOptions();
 
 		await submitCredentials({
 			signIn: {
@@ -154,13 +186,15 @@ describe("SignInCredentialsForm", () => {
 				}),
 				status: "complete",
 			},
-			identifier: "user@example.com",
-			password: "secret",
-			setErrorMessage,
-			setIsSubmitting,
-			onSuccess,
+			...options,
 		});
-		expect(setErrorMessage).toHaveBeenCalledWith("Finalize failed");
+
+		expect(options.setErrorMessage).toHaveBeenCalledWith("Finalize failed");
+	});
+
+	it("shows an extra-verification message for pending Clerk statuses", async () => {
+		const { submitCredentials } = await loadSignInCredentialsForm();
+		const options = makeSubmitOptions();
 
 		await submitCredentials({
 			signIn: {
@@ -168,15 +202,17 @@ describe("SignInCredentialsForm", () => {
 				finalize: vi.fn(),
 				status: "needs_second_factor",
 			},
-			identifier: "user@example.com",
-			password: "secret",
-			setErrorMessage,
-			setIsSubmitting,
-			onSuccess,
+			...options,
 		});
-		expect(setErrorMessage).toHaveBeenCalledWith(
-			"Tu cuenta requiere un paso adicional de verificación. Usá el flujo de Clerk configurado para completar el inicio de sesión.",
+
+		expect(options.setErrorMessage).toHaveBeenCalledWith(
+			EXTRA_VERIFICATION_MESSAGE,
 		);
+	});
+
+	it("shows Clerk errors thrown during submission", async () => {
+		const { submitCredentials } = await loadSignInCredentialsForm();
+		const options = makeSubmitOptions();
 
 		await submitCredentials({
 			signIn: {
@@ -186,12 +222,9 @@ describe("SignInCredentialsForm", () => {
 				finalize: vi.fn(),
 				status: "needs_identifier",
 			},
-			identifier: "user@example.com",
-			password: "secret",
-			setErrorMessage,
-			setIsSubmitting,
-			onSuccess,
+			...options,
 		});
-		expect(setErrorMessage).toHaveBeenCalledWith("Network failed");
+
+		expect(options.setErrorMessage).toHaveBeenCalledWith("Network failed");
 	});
 });
