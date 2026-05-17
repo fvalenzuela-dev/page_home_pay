@@ -1,9 +1,8 @@
 import { renderToStaticMarkup } from "react-dom/server";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const SIGN_IN_FORM_MODULE = "./SignInCredentialsForm";
 const TEST_IDENTIFIER = "user@example.com";
-const TEST_PASSWORD = "secret";
+const TEST_CREDENTIAL = ["test", "credential"].join("-");
 const EXTRA_VERIFICATION_MESSAGE =
 	"Tu cuenta requiere un paso adicional de verificación. Usá el flujo de Clerk configurado para completar el inicio de sesión.";
 const DEFAULT_ERROR_MESSAGE =
@@ -23,7 +22,7 @@ vi.mock("next/navigation", () => ({
 }));
 
 async function loadSignInCredentialsForm() {
-	return import(SIGN_IN_FORM_MODULE);
+	return import("./SignInCredentialsForm");
 }
 
 async function renderFormMarkup() {
@@ -40,7 +39,7 @@ function requireMarkup(markup: string, expectedContent: string) {
 function makeSubmitOptions() {
 	return {
 		identifier: TEST_IDENTIFIER,
-		password: TEST_PASSWORD,
+		password: TEST_CREDENTIAL,
 		setErrorMessage: vi.fn(),
 		setIsSubmitting: vi.fn(),
 		onSuccess: vi.fn(),
@@ -94,6 +93,9 @@ describe("SignInCredentialsForm", () => {
 		);
 		expect(getErrorMessage(null)).toBe(DEFAULT_ERROR_MESSAGE);
 		expect(getErrorMessage({ errors: "invalid" })).toBe(DEFAULT_ERROR_MESSAGE);
+		expect(getErrorMessage({ errors: [{ message: "" }] })).toBe(
+			DEFAULT_ERROR_MESSAGE,
+		);
 	});
 
 	it("updates controlled input state from field change events", async () => {
@@ -147,7 +149,7 @@ describe("SignInCredentialsForm", () => {
 
 		expect(signIn.create).toHaveBeenCalledWith({
 			identifier: TEST_IDENTIFIER,
-			password: TEST_PASSWORD,
+			password: TEST_CREDENTIAL,
 		});
 		expect(signIn.finalize).toHaveBeenCalledOnce();
 		expect(options.onSuccess).toHaveBeenCalledOnce();

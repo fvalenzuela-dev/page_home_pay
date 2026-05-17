@@ -20,18 +20,19 @@ function getChildren(element: ReactNode): ReactNode[] {
 		: [element.props.children];
 }
 
-type ElementPredicate = (props: ElementProps) => boolean;
-
-function findElement(
+function findElementByClassName(
 	node: ReactNode,
-	predicate: ElementPredicate,
+	className: string,
 ): ReactNode | undefined {
-	if (isValidElement<ElementProps>(node) && predicate(node.props)) {
+	if (
+		isValidElement<ElementProps>(node) &&
+		node.props.className === className
+	) {
 		return node;
 	}
 
 	for (const child of getChildren(node)) {
-		const match = findElement(child, predicate);
+		const match = findElementByClassName(child, className);
 		if (match) {
 			return match;
 		}
@@ -45,26 +46,15 @@ describe("SignInPage", () => {
 		const { default: SignInPage } = await import("./page");
 		const pageElement = SignInPage();
 
+		expect(findElementByClassName(pageElement, "auth-shell")).toBeDefined();
 		expect(
-			findElement(pageElement, (props) => props.className === "auth-shell"),
+			findElementByClassName(pageElement, "auth-visual-panel"),
 		).toBeDefined();
 		expect(
-			findElement(
-				pageElement,
-				(props) => props.className === "auth-visual-panel",
-			),
-		).toBeDefined();
-		expect(
-			findElement(
-				pageElement,
-				(props) => props.className === "auth-form-panel",
-			),
+			findElementByClassName(pageElement, "auth-form-panel"),
 		).toBeDefined();
 
-		const formCard = findElement(
-			pageElement,
-			(props) => props.className === "auth-form-card",
-		);
+		const formCard = findElementByClassName(pageElement, "auth-form-card");
 		expect(isValidElement<ElementProps>(formCard)).toBe(true);
 	});
 });

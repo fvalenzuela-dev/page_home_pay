@@ -2,7 +2,7 @@
 
 import { useSignIn } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useState, type Dispatch, type SetStateAction } from "react";
 
 const DEFAULT_SIGN_IN_ERROR =
 	"No pudimos iniciar sesión. Revisá tus credenciales e intentá nuevamente.";
@@ -25,9 +25,9 @@ interface SignInResult {
 	error: unknown;
 }
 
-type SubmitErrorHandler = (value: string | null) => void;
-type SubmitStateHandler = (value: boolean) => void;
-type InputValueHandler = (value: string) => void;
+type SubmitErrorHandler = Dispatch<SetStateAction<string | null>>;
+type SubmitStateHandler = Dispatch<SetStateAction<boolean>>;
+type InputValueHandler = Dispatch<SetStateAction<string>>;
 
 interface FormSubmitEvent {
 	preventDefault: () => void;
@@ -40,8 +40,8 @@ interface InputChangeEvent {
 }
 
 interface SignInAttempt {
-	create: (credentials: SignInCredentials) => Promise<SignInResult>;
-	finalize: () => Promise<SignInResult>;
+	create(credentials: SignInCredentials): Promise<SignInResult>;
+	finalize(): Promise<SignInResult>;
 	status: string;
 }
 
@@ -64,12 +64,15 @@ function getClerkErrors(error: unknown): NonNullable<ClerkErrorLike["errors"]> {
 }
 
 export function getErrorMessage(error: unknown): string {
-	const [firstError] = getClerkErrors(error);
+	const firstError = getClerkErrors(error).at(0);
 	if (firstError === undefined) {
 		return DEFAULT_SIGN_IN_ERROR;
 	}
 
-	return firstError.longMessage || firstError.message || DEFAULT_SIGN_IN_ERROR;
+	const errorMessage = firstError.longMessage ?? firstError.message;
+	return errorMessage === ""
+		? DEFAULT_SIGN_IN_ERROR
+		: (errorMessage ?? DEFAULT_SIGN_IN_ERROR);
 }
 
 export function createInputChangeHandler(setValue: InputValueHandler) {
@@ -185,16 +188,16 @@ export default function SignInCredentialsForm() {
 				/>
 			</label>
 
-			{errorMessage ? (
+			{errorMessage !== null && (
 				<p className="auth-error-message" role="alert">
 					{errorMessage}
 				</p>
-			) : null}
+			)}
 
 			<button
 				className="auth-submit-button"
 				type="submit"
-				disabled={!signIn || fetchStatus === "fetching" || isSubmitting}
+				disabled={signIn === null || fetchStatus === "fetching" || isSubmitting}
 			>
 				{isSubmitting ? "Ingresando…" : "Ingresar"}
 			</button>

@@ -56,13 +56,45 @@ function requireClassName(
 	}
 }
 
-function requirePropValue(
+function requireAriaLabelledBy(
 	element: ReactElement<ElementProps>,
-	propName: string,
-	expectedValue: unknown,
+	expectedValue: string,
 ) {
-	if (element.props[propName] !== expectedValue) {
-		throw new Error(`Expected ${propName} prop to be ${String(expectedValue)}`);
+	if (element.props["aria-labelledby"] !== expectedValue) {
+		throw new Error(`Expected aria-labelledby prop to be ${expectedValue}`);
+	}
+}
+
+function requireHtmlFor(
+	element: ReactElement<ElementProps>,
+	expectedValue: string,
+) {
+	if (element.props.htmlFor !== expectedValue) {
+		throw new Error(`Expected htmlFor prop to be ${expectedValue}`);
+	}
+}
+
+function requireId(element: ReactElement<ElementProps>, expectedValue: string) {
+	if (element.props.id !== expectedValue) {
+		throw new Error(`Expected id prop to be ${expectedValue}`);
+	}
+}
+
+function requireType(
+	element: ReactElement<ElementProps>,
+	expectedValue: string,
+) {
+	if (element.props.type !== expectedValue) {
+		throw new Error(`Expected type prop to be ${expectedValue}`);
+	}
+}
+
+function requireAriaLabel(
+	element: ReactElement<ElementProps>,
+	expectedValue: string,
+) {
+	if (element.props["aria-label"] !== expectedValue) {
+		throw new Error(`Expected aria-label prop to be ${expectedValue}`);
 	}
 }
 
@@ -82,7 +114,7 @@ describe("HomePage", () => {
 		expect(textFrom(header.props.children)).toContain("Administración");
 		expect(textFrom(header.props.children)).toContain("Contacto");
 		requireClassName(hero, "hero-section");
-		requirePropValue(hero, "aria-labelledby", "home-title");
+		requireAriaLabelledBy(hero, "home-title");
 	});
 
 	it("includes theme controls", async () => {
@@ -113,13 +145,13 @@ describe("HomePage", () => {
 			throw new Error("Expected theme toggle to render a label");
 		}
 		requireClassName(themeToggle, "theme-toggle");
-		requirePropValue(themeToggle, "htmlFor", "theme-switch");
+		requireHtmlFor(themeToggle, "theme-switch");
 		if (themeInput.type !== "input") {
 			throw new Error("Expected theme toggle control to render an input");
 		}
-		requirePropValue(themeInput, "id", "theme-switch");
-		requirePropValue(themeInput, "type", "checkbox");
-		requirePropValue(themeInput, "aria-label", "Toggle dark and light theme");
+		requireId(themeInput, "theme-switch");
+		requireType(themeInput, "checkbox");
+		requireAriaLabel(themeInput, "Toggle dark and light theme");
 		expect(textFrom(themeToggle.props.children)).toContain("☀");
 		expect(textFrom(themeToggle.props.children)).toContain("☾");
 	});
@@ -168,9 +200,9 @@ describe("HomePage", () => {
 			"#administración",
 			"#contacto",
 		]);
-		requirePropValue(hero, "id", "dashboard");
-		requirePropValue(adminPanel, "id", "administración");
-		requirePropValue(contactPanel, "id", "contacto");
+		requireId(hero, "dashboard");
+		requireId(adminPanel, "administración");
+		requireId(contactPanel, "contacto");
 	});
 
 	it("structures future dashboard, administration, and contact sections", async () => {
@@ -183,8 +215,8 @@ describe("HomePage", () => {
 		const contactPanel = asElement(contactPanelNode);
 
 		requireClassName(contentGrid, "content-grid");
-		requirePropValue(adminPanel, "id", "administración");
-		requirePropValue(contactPanel, "id", "contacto");
+		requireId(adminPanel, "administración");
+		requireId(contactPanel, "contacto");
 		expect(textFrom(adminPanel.props.children)).toContain("Próximos pagos");
 		expect(textFrom(adminPanel.props.children)).toContain("Pending");
 		expect(textFrom(adminPanel.props.children)).toContain("Paid");
