@@ -76,9 +76,7 @@ describe("HomePage", () => {
 		expect(themeInput.type).toBe("input");
 		expect(themeInput.props.id).toBe("theme-switch");
 		expect(themeInput.props.type).toBe("checkbox");
-		expect(themeInput.props["aria-label"]).toBe(
-			"Toggle dark and light theme",
-		);
+		expect(themeInput.props["aria-label"]).toBe("Toggle dark and light theme");
 		expect(textFrom(themeToggle.props.children)).toContain("☀");
 		expect(textFrom(themeToggle.props.children)).toContain("☾");
 		expect(textFrom(themeToggle.props.children)).toContain(
