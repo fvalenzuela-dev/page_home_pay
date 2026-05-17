@@ -1,19 +1,10 @@
-import { isValidElement, type ReactElement, type ReactNode } from "react";
+import { isValidElement, type ReactNode } from "react";
 import { describe, expect, it } from "vitest";
 import RootLayout, { metadata } from "./layout";
 
 type ElementProps = Record<string, unknown> & {
 	children?: ReactNode;
 };
-
-function expectElement(node: ReactNode, type: string): ReactElement<ElementProps> {
-	expect(isValidElement(node)).toBe(true);
-
-	const element = node as ReactElement<ElementProps>;
-	expect(element.type).toBe(type);
-
-	return element;
-}
 
 describe("RootLayout", () => {
 	it("exports default metadata", () => {
@@ -25,10 +16,23 @@ describe("RootLayout", () => {
 
 	it("renders children inside the application document", () => {
 		const child = <main>Test content</main>;
-		const html = expectElement(RootLayout({ children: child }), "html");
-		const body = expectElement(html.props.children, "body");
+		const documentElement = RootLayout({ children: child });
 
-		expect(html.props.lang).toBe("en");
-		expect(body.props.children).toBe(child);
+		expect(isValidElement<ElementProps>(documentElement)).toBe(true);
+		if (!isValidElement<ElementProps>(documentElement)) {
+			throw new Error("RootLayout did not return a React element");
+		}
+
+		const bodyElement = documentElement.props.children;
+
+		expect(documentElement.type).toBe("html");
+		expect(documentElement.props.lang).toBe("en");
+		expect(isValidElement<ElementProps>(bodyElement)).toBe(true);
+		if (!isValidElement<ElementProps>(bodyElement)) {
+			throw new Error("RootLayout did not render a body element");
+		}
+
+		expect(bodyElement.type).toBe("body");
+		expect(bodyElement.props.children).toBe(child);
 	});
 });
