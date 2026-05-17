@@ -2,25 +2,19 @@ name: 📚 Continuous Documentation
 
 on:
   pull_request:
-  branches-ignore:
-      - main
+    branches:
+      - develop
     types: [opened, synchronize]
     paths:
       - "**/*.js"
+      - "**/*.jsx"
       - "**/*.ts"
-      - "**/*.py"
-      - "**/*.go"
-      - "**/*.java"
-      - "**/*.cs"
-      - "**/*.rb"
-      - "**/*.rs"
-      - "**/*.php"
-      - "**/*.swift"
-      - "**/*.kt"
+      - "**/*.tsx"
       - "**/*.sh"
       - "**/*.yml"
       - "**/*.yaml"
       - "**/*.json"
+      - "**/*.md"
 
 jobs:
   docs:
@@ -35,5 +29,4 @@ jobs:
       base_ref: ${{ github.event.pull_request.base.ref }}
       head_ref: ${{ github.event.pull_request.head.ref }}
     secrets:
-      # Pasa el secreto necesario (debes tenerlo configurado en el repo origenes o en la organización)
       GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
