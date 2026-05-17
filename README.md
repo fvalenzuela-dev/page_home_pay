@@ -8,7 +8,7 @@ Next.js 16 application for home payment management.
 2. Install dependencies:
 
    ```bash
-   npm install
+   pnpm install
    ```
 
 3. Copy environment placeholders:
@@ -20,7 +20,7 @@ Next.js 16 application for home payment management.
 4. Start development:
 
    ```bash
-   npm run dev
+   pnpm run dev
    ```
 
 ## Validation commands
@@ -28,17 +28,18 @@ Next.js 16 application for home payment management.
 Run the full local validation gate before opening a PR:
 
 ```bash
-npm run validate
+pnpm run validate
 ```
 
 That command runs:
 
-| Command             | Purpose                                 |
-| ------------------- | --------------------------------------- |
-| `npm run lint`      | Checks ESLint and Next.js lint rules.   |
-| `npm run typecheck` | Runs TypeScript without emitting files. |
-| `npm test`          | Runs Node's built-in test runner.       |
-| `npm run build`     | Builds the Next.js application.         |
+| Command                  | Purpose                                 |
+| ------------------------ | --------------------------------------- |
+| `pnpm run lint`          | Checks ESLint and Next.js lint rules.   |
+| `pnpm run lint:css`      | Checks CSS with Stylelint.              |
+| `pnpm run typecheck`     | Runs TypeScript without emitting files. |
+| `pnpm run test:coverage` | Runs Vitest and generates LCOV coverage. |
+| `pnpm run build`         | Builds the Next.js application.         |
 
 ## Required environment variables
 
