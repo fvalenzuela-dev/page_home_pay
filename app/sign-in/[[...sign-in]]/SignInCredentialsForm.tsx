@@ -40,8 +40,7 @@ interface InputChangeEvent {
 }
 
 interface SignInAttempt {
-	// eslint-disable-next-line @typescript-eslint/no-unused-vars
-	create(credentials: SignInCredentials): Promise<SignInResult>;
+	create(_credentials: SignInCredentials): Promise<SignInResult>;
 	finalize(): Promise<SignInResult>;
 	status: string;
 }
