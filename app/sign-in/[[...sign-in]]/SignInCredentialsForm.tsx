@@ -40,7 +40,7 @@ type ClerkSignIn = NonNullable<ReturnType<typeof useSignIn>["signIn"]>;
 interface SignInAttempt {
 	create: ClerkSignIn["create"];
 	finalize: ClerkSignIn["finalize"];
-	status: ClerkSignIn["status"] | string;
+	status: string;
 }
 
 interface SubmitCredentialsOptions extends SignInCredentials {
