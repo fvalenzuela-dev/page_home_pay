@@ -21,10 +21,6 @@ interface SignInCredentials {
 	password: string;
 }
 
-interface SignInResult {
-	error: unknown;
-}
-
 type SubmitErrorHandler = Dispatch<SetStateAction<string | null>>;
 type SubmitStateHandler = Dispatch<SetStateAction<boolean>>;
 type InputValueHandler = Dispatch<SetStateAction<string>>;
@@ -39,10 +35,12 @@ interface InputChangeEvent {
 	};
 }
 
+type ClerkSignIn = NonNullable<ReturnType<typeof useSignIn>["signIn"]>;
+
 interface SignInAttempt {
-	create(_credentials: SignInCredentials): Promise<SignInResult>;
-	finalize(): Promise<SignInResult>;
-	status: string;
+	create: ClerkSignIn["create"];
+	finalize: ClerkSignIn["finalize"];
+	status: ClerkSignIn["status"] | string;
 }
 
 interface SubmitCredentialsOptions extends SignInCredentials {
