@@ -1,3 +1,5 @@
+import { UserButton } from "@clerk/nextjs";
+
 const navigationItems = ["Dashboard", "Administración", "Contacto"];
 
 const upcomingBills = [
@@ -60,15 +62,20 @@ export default function HomePage() {
 						</span>
 						<span className="sr-only">Toggle dark and light theme</span>
 					</label>
-					<button className="user-menu" type="button">
-						<span className="avatar" aria-hidden="true">
-							FV
-						</span>
-						<span className="user-copy">
-							<span className="user-label">Usuario</span>
-							<span>Cuenta familiar</span>
-						</span>
-					</button>
+					<div className="account-menu">
+						<UserButton
+							showName
+							userProfileMode="modal"
+							appearance={{
+								elements: {
+									userButtonTrigger: "account-menu-trigger",
+									userButtonBox: "account-menu-box",
+									userButtonOuterIdentifier: "account-menu-name",
+									avatarBox: "account-menu-avatar",
+								},
+							}}
+						/>
+					</div>
 				</fieldset>
 			</header>
 

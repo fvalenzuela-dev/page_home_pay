@@ -38,4 +38,18 @@ describe("global shell styles", () => {
 		expect(css).toContain(".status-chip.overdue");
 		expect(css).toContain("border-radius: 9999px");
 	});
+
+	it("supports the Clerk sign-in split layout across themes and narrow screens", () => {
+		expect(css).toContain(".auth-shell");
+		expect(css).toContain(
+			"grid-template-columns: minmax(0, 1fr) minmax(24rem, 0.82fr)",
+		);
+		expect(css).toContain(".auth-visual-panel");
+		expect(css).toContain(".auth-form-panel");
+		expect(css).toContain("justify-content: flex-end");
+		expect(css).not.toContain("@media (prefers-color-scheme: dark)");
+		expect(css).toContain(".auth-credentials-form");
+		expect(css).toContain(".auth-field input");
+		expect(css).toContain(".auth-submit-button");
+	});
 });

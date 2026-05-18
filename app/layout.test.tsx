@@ -1,26 +1,42 @@
 import { isValidElement, type ReactNode } from "react";
-import { describe, expect, it } from "vitest";
-import RootLayout, { metadata } from "./layout";
+import { describe, expect, it, vi } from "vitest";
+
+vi.mock("@clerk/nextjs", () => ({
+	ClerkProvider: ({ children }: { children: ReactNode }) => (
+		<section data-testid="clerk-provider">{children}</section>
+	),
+}));
 
 type ElementProps = Record<string, unknown> & {
 	children?: ReactNode;
 };
 
 describe("RootLayout", () => {
-	it("exports default metadata", () => {
+	it("exports default metadata", async () => {
+		const { metadata } = await import("./layout");
+
 		expect(metadata).toEqual({
 			description: "Home payment management application",
 			title: "Page Home Pay",
 		});
 	});
 
-	it("renders children inside the application document", () => {
+	it("wraps the application document with Clerk session support", async () => {
+		const { default: RootLayout } = await import("./layout");
 		const child = <main>Test content</main>;
-		const documentElement = RootLayout({ children: child });
+		const providerElement = RootLayout({ children: child });
+
+		expect(isValidElement<ElementProps>(providerElement)).toBe(true);
+		if (!isValidElement<ElementProps>(providerElement)) {
+			throw new Error("RootLayout did not render ClerkProvider");
+		}
+
+		expect(providerElement.type).toEqual(expect.any(Function));
+		const documentElement = providerElement.props.children;
 
 		expect(isValidElement<ElementProps>(documentElement)).toBe(true);
 		if (!isValidElement<ElementProps>(documentElement)) {
-			throw new Error("RootLayout did not return a React element");
+			throw new Error("RootLayout did not return an html element");
 		}
 
 		const bodyElement = documentElement.props.children;

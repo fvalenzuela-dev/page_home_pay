@@ -1,0 +1,16 @@
+Implemented AGENTS.md Codacy documentation fixes.
+
+Changed files: `AGENTS.md`
+- Added concrete examples/code blocks.
+- Defined `MUST`, `SHOULD`, and `DO NOT` on first use.
+- Added a narrow mandatory-rule escape hatch.
+- Split the compound lint instruction into separate bullets.
+- Preserved strict operational intent.
+
+Validation: Read `package.json`; no obvious markdown-specific script exists. App tests not run because this was markdown-only.
+
+Open risks/questions: Codacy’s “absolute rule” heuristic should recognize the global escape hatch, but I cannot verify Codacy locally. Engram save was requested, but no Engram save tool is exposed in this worker.
+
+Recommended next step: Run Codacy/checks in CI to confirm the documentation notices are cleared.
+
+skill_resolution: paths-injected

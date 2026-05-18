@@ -33,3 +33,6 @@ pnpm-debug.log*
 
 # Local scratch/context files
 context.md
+
+# clerk configuration (can include secrets)
+/.clerk/
