@@ -610,26 +610,34 @@ export default function CategoriesScreen({
 	return (
 		<CategoriesView
 			state={state}
-			onPreviousPage={() => changePage(state.page - 1)}
-			onNextPage={() => changePage(state.page + 1)}
-			onOpenCreate={() => setState((current) => openCreateModal(current))}
-			onOpenEdit={(id) => setState((current) => openEditModal(current, id))}
-			onOpenDelete={(id) =>
-				setState((current) => openDeleteConfirmation(current, id))
-			}
+			onPreviousPage={() => {
+				changePage(state.page - 1);
+			}}
+			onNextPage={() => {
+				changePage(state.page + 1);
+			}}
+			onOpenCreate={() => {
+				setState((current) => openCreateModal(current));
+			}}
+			onOpenEdit={(id) => {
+				setState((current) => openEditModal(current, id));
+			}}
+			onOpenDelete={(id) => {
+				setState((current) => openDeleteConfirmation(current, id));
+			}}
 			onUpdateDraftField={updateDraftField}
 			onSubmitEdit={(event) => {
 				void submitEdit(event);
 			}}
-			onCancelEdit={() =>
-				setState((current) => ({ ...current, editDraft: null }))
-			}
+			onCancelEdit={() => {
+				setState((current) => ({ ...current, editDraft: null }));
+			}}
 			onConfirmDelete={() => {
 				void confirmDelete();
 			}}
-			onCancelDelete={() =>
-				setState((current) => ({ ...current, deleteCandidate: null }))
-			}
+			onCancelDelete={() => {
+				setState((current) => ({ ...current, deleteCandidate: null }));
+			}}
 		/>
 	);
 }
