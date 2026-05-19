@@ -1,6 +1,4 @@
-import { UserButton } from "@clerk/nextjs";
-
-const navigationItems = ["Dashboard", "Administración", "Contacto"];
+import AppHeader from "./AppHeader";
 
 const upcomingBills = [
 	{
@@ -26,58 +24,7 @@ const upcomingBills = [
 export default function HomePage() {
 	return (
 		<main className="app-shell">
-			<header className="top-navigation">
-				<a
-					className="brand-mark"
-					href="#dashboard"
-					aria-label="Page Home Pay home"
-				>
-					<span className="brand-icon" aria-hidden="true">
-						P
-					</span>
-					<span>Page Home Pay</span>
-				</a>
-
-				<nav className="nav-menu" aria-label="Main menu">
-					{navigationItems.map((item) => (
-						<a key={item} href={`#${item.toLowerCase()}`}>
-							{item}
-						</a>
-					))}
-				</nav>
-
-				<fieldset className="user-actions">
-					<legend className="sr-only">Logged-in user management</legend>
-					<label className="theme-toggle" htmlFor="theme-switch">
-						<input
-							id="theme-switch"
-							type="checkbox"
-							aria-label="Toggle dark and light theme"
-						/>
-						<span className="theme-icon light-icon" aria-hidden="true">
-							☀
-						</span>
-						<span className="theme-icon dark-icon" aria-hidden="true">
-							☾
-						</span>
-						<span className="sr-only">Toggle dark and light theme</span>
-					</label>
-					<div className="account-menu">
-						<UserButton
-							showName
-							userProfileMode="modal"
-							appearance={{
-								elements: {
-									userButtonTrigger: "account-menu-trigger",
-									userButtonBox: "account-menu-box",
-									userButtonOuterIdentifier: "account-menu-name",
-									avatarBox: "account-menu-avatar",
-								},
-							}}
-						/>
-					</div>
-				</fieldset>
-			</header>
+			<AppHeader />
 
 			<section
 				className="hero-section"
