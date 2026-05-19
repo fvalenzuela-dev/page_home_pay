@@ -32,7 +32,7 @@ describe("categoriesApi", () => {
 		const api = createCategoriesApi({
 			baseUrl: "https://api.example.test/",
 			fetcher,
-			getToken: async () => "clerk-token",
+			getToken: () => Promise.resolve("clerk-token"),
 		});
 
 		const page = await api.listCategories({ page: 2, limit: 10 });

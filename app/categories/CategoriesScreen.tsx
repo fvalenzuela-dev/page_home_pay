@@ -307,7 +307,7 @@ export function CategoriesView({
 					</div>
 				)}
 
-				<div
+				<nav
 					className="categories-pagination"
 					aria-label="Paginación de categorías"
 				>
@@ -329,7 +329,7 @@ export function CategoriesView({
 					>
 						Siguiente
 					</button>
-				</div>
+				</nav>
 			</section>
 
 			{state.editDraft !== null && (
@@ -358,9 +358,9 @@ export function CategoriesView({
 								name="name"
 								required
 								value={state.editDraft.name}
-								onChange={(event) =>
-									onUpdateDraftField("name", getInputValue(event))
-								}
+								onChange={(event) => {
+									onUpdateDraftField("name", getInputValue(event));
+								}}
 							/>
 						</label>
 						<fieldset className="categories-choice-group">
@@ -377,9 +377,9 @@ export function CategoriesView({
 											name="icon_web"
 											type="radio"
 											value={option.value}
-											onChange={(event) =>
-												onUpdateDraftField("iconWeb", getInputValue(event))
-											}
+											onChange={(event) => {
+												onUpdateDraftField("iconWeb", getInputValue(event));
+											}}
 										/>
 										<span
 											className={`categories-icon-preview ${getColorClassName(state.editDraft?.colorWeb ?? "success")}`}
@@ -405,9 +405,9 @@ export function CategoriesView({
 											name="color_web"
 											type="radio"
 											value={option.value}
-											onChange={(event) =>
-												onUpdateDraftField("colorWeb", getInputValue(event))
-											}
+											onChange={(event) => {
+												onUpdateDraftField("colorWeb", getInputValue(event));
+											}}
 										/>
 										<span
 											className={`categories-color-swatch ${getColorClassName(option.value)}`}
@@ -478,6 +478,10 @@ export default function CategoriesScreen({
 		createCategoriesState(initialState ?? { status: "loading" }),
 	);
 	const [refreshKey, setRefreshKey] = useState(0);
+	const categoryListRequest = useMemo(
+		() => ({ limit: state.limit, page: state.page, refreshKey }),
+		[refreshKey, state.limit, state.page],
+	);
 	const api = useMemo(
 		() => createCategoriesApi({ getToken: () => getToken() }),
 		[getToken],
@@ -497,8 +501,8 @@ export default function CategoriesScreen({
 			}));
 			try {
 				const page = await api.listCategories({
-					page: state.page,
-					limit: state.limit,
+					page: categoryListRequest.page,
+					limit: categoryListRequest.limit,
 				});
 				if (!ignore) {
 					setState((current) => ({
@@ -530,7 +534,7 @@ export default function CategoriesScreen({
 		return () => {
 			ignore = true;
 		};
-	}, [api, autoLoad, refreshKey, state.limit, state.page]);
+	}, [api, autoLoad, categoryListRequest]);
 
 	function changePage(nextPage: number) {
 		setState((current) => ({ ...current, page: nextPage }));
