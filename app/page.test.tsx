@@ -5,6 +5,13 @@ import {
 	type ReactNode,
 } from "react";
 import { describe, expect, it, vi } from "vitest";
+import {
+	HomeDashboardView,
+	MOCK_HOME_RECORDS,
+	PAGE_SIZE_OPTIONS,
+	getPaginatedHomeRecords,
+} from "./HomeDashboard";
+import { CATEGORY_COLOR_OPTIONS } from "./categories/categoryOptions";
 
 vi.mock("@clerk/nextjs", () => ({
 	UserButton: (props: Record<string, unknown>) => (
@@ -34,6 +41,10 @@ function asElement(node: ReactNode): ReactElement<ElementProps> {
 	}
 
 	return node;
+}
+
+function elementChildren(element: ReactElement<ElementProps>) {
+	return Children.toArray(element.props.children).map(asElement);
 }
 
 function textFrom(node: ReactNode): string {
@@ -104,23 +115,24 @@ function requireAriaLabel(
 }
 
 describe("HomePage", () => {
-	it("renders the initial application shell with navigation", async () => {
+	it("renders the application shell with the redesigned dashboard", async () => {
 		const main = await renderHomePageElement();
-		const [, heroNode] = Children.toArray(main.props.children);
+		const [, heroNode, dashboardNode] = Children.toArray(main.props.children);
 		const header = await renderHomeHeaderElement();
 		const hero = asElement(heroNode);
+		const dashboard = asElement(dashboardNode);
 
 		expect(main.type).toBe("main");
 		requireClassName(main, "app-shell");
 		expect(main.props["data-theme"]).toBeUndefined();
 		requireClassName(header, "top-navigation");
-		expect(header.props["aria-label"]).toBeUndefined();
 		expect(textFrom(header.props.children)).toContain("Dashboard");
 		expect(textFrom(header.props.children)).toContain("Administración");
 		expect(textFrom(header.props.children)).toContain("Categorías");
 		expect(textFrom(header.props.children)).toContain("Contacto");
 		requireClassName(hero, "hero-section");
 		requireAriaLabelledBy(hero, "home-title");
+		expect(typeof dashboard.type).toBe("function");
 	});
 
 	it("includes theme controls", async () => {
@@ -204,12 +216,6 @@ describe("HomePage", () => {
 			asElement,
 		);
 		const hero = asElement(Children.toArray(main.props.children)[1]);
-		const contentGrid = asElement(Children.toArray(main.props.children)[2]);
-		const [adminSectionNode, contactPanelNode] = Children.toArray(
-			contentGrid.props.children,
-		);
-		const adminSection = asElement(adminSectionNode);
-		const contactPanel = asElement(contactPanelNode);
 
 		expect(dashboardLink.props.href).toBe("#dashboard");
 		expect(contactLink.props.href).toBe("#contacto");
@@ -222,28 +228,71 @@ describe("HomePage", () => {
 		]);
 		expect(textFrom(adminPanelMenu.props.children)).toContain("Categorías");
 		requireId(hero, "dashboard");
-		requireId(adminSection, "administración");
-		requireId(contactPanel, "contacto");
 	});
 
-	it("structures future dashboard, administration, and contact sections", async () => {
-		const main = await renderHomePageElement();
-		const contentGrid = asElement(Children.toArray(main.props.children)[2]);
-		const [adminPanelNode, contactPanelNode] = Children.toArray(
-			contentGrid.props.children,
-		);
-		const adminPanel = asElement(adminPanelNode);
-		const contactPanel = asElement(contactPanelNode);
+	it("provides 50 mock records with safe pagination", () => {
+		expect(MOCK_HOME_RECORDS).toHaveLength(50);
+		expect(PAGE_SIZE_OPTIONS).toEqual([10, 25, 50]);
 
-		requireClassName(contentGrid, "content-grid");
-		requireId(adminPanel, "administración");
-		requireId(contactPanel, "contacto");
-		expect(textFrom(adminPanel.props.children)).toContain("Próximos pagos");
-		expect(textFrom(adminPanel.props.children)).toContain("Pending");
-		expect(textFrom(adminPanel.props.children)).toContain("Paid");
-		expect(textFrom(adminPanel.props.children)).toContain("Overdue");
-		expect(textFrom(contactPanel.props.children)).toContain(
-			"Base lista para crecer",
+		const firstPage = getPaginatedHomeRecords(MOCK_HOME_RECORDS, 1, 10);
+		const lastPage = getPaginatedHomeRecords(MOCK_HOME_RECORDS, 5, 10);
+		const clampedPage = getPaginatedHomeRecords(MOCK_HOME_RECORDS, 99, 25);
+
+		expect(firstPage.records).toHaveLength(10);
+		expect(firstPage.totalPages).toBe(5);
+		expect(firstPage.records[0]?.id).toBe(1);
+		expect(lastPage.records.at(-1)?.id).toBe(50);
+		expect(clampedPage.page).toBe(2);
+		expect(clampedPage.records).toHaveLength(25);
+	});
+
+	it("renders all theme variant actions and the paginated grid view", () => {
+		const pageChange = vi.fn();
+		const pageSizeChange = vi.fn();
+		const pagination = getPaginatedHomeRecords(MOCK_HOME_RECORDS, 1, 10);
+		const view = asElement(
+			HomeDashboardView({
+				records: pagination.records,
+				page: pagination.page,
+				pageSize: 10,
+				totalRecords: MOCK_HOME_RECORDS.length,
+				totalPages: pagination.totalPages,
+				onPageChange: pageChange,
+				onPageSizeChange: pageSizeChange,
+			}),
 		);
+		const [actionsPanel, gridPanel, contactPanel] = elementChildren(view);
+		const [, actionsForm] = elementChildren(actionsPanel);
+		const actionButtons = elementChildren(actionsForm);
+		const [, tableWrap, paginationNav] = elementChildren(gridPanel);
+		const table = elementChildren(tableWrap)[0];
+		const [, , tbody] = elementChildren(table);
+		const rows = elementChildren(tbody);
+		const [, , nextButton] = elementChildren(paginationNav);
+
+		requireClassName(view, "dashboard-layout");
+		requireId(actionsPanel, "administración");
+		requireId(gridPanel, "payment-grid");
+		requireId(contactPanel, "contacto");
+		expect(actionButtons).toHaveLength(CATEGORY_COLOR_OPTIONS.length);
+		expect(
+			actionButtons.map((button) => textFrom(button.props.children)),
+		).toEqual(
+			CATEGORY_COLOR_OPTIONS.map((option) => `${option.label} ${option.value}`),
+		);
+		expect(rows).toHaveLength(10);
+		expect(textFrom(table.props.children)).toMatch(
+			/Showing\s+1\s+-\s+10\s+of\s+50\s+mock records/,
+		);
+		expect(textFrom(paginationNav.props.children)).toMatch(
+			/Página\s+1\s+de\s+5/,
+		);
+
+		const nextPage = nextButton.props.onClick;
+		if (typeof nextPage !== "function") {
+			throw new Error("Expected next page button to have an onClick handler");
+		}
+		nextPage({} as never);
+		expect(pageChange).toHaveBeenCalledWith(2);
 	});
 });
