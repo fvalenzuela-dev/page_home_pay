@@ -59,7 +59,6 @@ When using this hatch, state the exception, reason, and validation performed.
 - **Required**: Run the targeted Vitest file after changing application behavior or tests covered by that file.
 - **Recommended**: Run broader validation when a change crosses multiple app areas.
 - **Prohibited**: Commit without explicit user approval.
-- **Prohibited**: Push without explicit user approval.
 - **Prohibited**: Publish without explicit user approval.
 - **Prohibited**: Rotate secrets without explicit user approval.
 - **Prohibited**: Run destructive git commands without explicit user approval.
