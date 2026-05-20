@@ -13,18 +13,18 @@ import {
 	type CategoriesState,
 } from "./categoriesState";
 
-interface CategoriesViewProps {
+export interface CategoriesViewProps {
 	state: CategoriesState;
 	onPreviousPage: () => void;
 	onNextPage: () => void;
 	onOpenCreate: () => void;
-	onOpenEdit: (categoryId: number) => void;
-	onOpenDelete: (categoryId: number) => void;
+	onOpenEdit: (_categoryId: number) => void;
+	onOpenDelete: (_categoryId: number) => void;
 	onUpdateDraftField: (
-		categoryField: keyof UpdateCategoryInput,
-		fieldValue: string,
+		_categoryField: keyof UpdateCategoryInput,
+		_fieldValue: string,
 	) => void;
-	onSubmitEdit: (formEvent: FormEvent<HTMLFormElement>) => void;
+	onSubmitEdit: (_formEvent: FormEvent<HTMLFormElement>) => void;
 	onCancelEdit: () => void;
 	onConfirmDelete: () => void;
 	onCancelDelete: () => void;
@@ -32,14 +32,14 @@ interface CategoriesViewProps {
 
 interface CategoriesTableProps {
 	categories: Category[];
-	onOpenEdit: (categoryId: number) => void;
-	onOpenDelete: (categoryId: number) => void;
+	onOpenEdit: (_categoryId: number) => void;
+	onOpenDelete: (_categoryId: number) => void;
 }
 
 interface CategoryRowProps {
 	category: Category;
-	onOpenEdit: (categoryId: number) => void;
-	onOpenDelete: (categoryId: number) => void;
+	onOpenEdit: (_categoryId: number) => void;
+	onOpenDelete: (_categoryId: number) => void;
 }
 
 function CategoryRow({ category, onOpenEdit, onOpenDelete }: CategoryRowProps) {
@@ -325,31 +325,36 @@ function DeleteDialog(
 	);
 }
 
-function CategoriesPanel(props: CategoriesViewProps) {
+function CategoriesPanelHeader(
+	props: Pick<CategoriesViewProps, "state" | "onOpenCreate">,
+) {
 	return (
-		<section
-			className="panel categories-panel"
-			aria-label="Listado de categorías"
-		>
-			<div className="panel-header">
-				<div>
-					<p className="card-label">Endpoint /categories</p>
-					<h2>Listado paginado</h2>
-				</div>
-				<div className="categories-panel-actions">
-					<span className="status-chip info">
-						{props.state.totalItems} categorías
-					</span>
-					<button
-						className="auth-submit-button categories-add-button"
-						type="button"
-						onClick={props.onOpenCreate}
-					>
-						Agregar categoría
-					</button>
-				</div>
+		<div className="panel-header">
+			<div>
+				<p className="card-label">Endpoint /categories</p>
+				<h2>Listado paginado</h2>
 			</div>
+			<div className="categories-panel-actions">
+				<span className="status-chip info">
+					{props.state.totalItems} categorías
+				</span>
+				<button
+					className="auth-submit-button categories-add-button"
+					type="button"
+					onClick={props.onOpenCreate}
+				>
+					Agregar categoría
+				</button>
+			</div>
+		</div>
+	);
+}
 
+function CategoriesPanelBody(
+	props: Pick<CategoriesViewProps, "state" | "onOpenEdit" | "onOpenDelete">,
+) {
+	return (
+		<>
 			{props.state.successMessage !== null && (
 				<p className="categories-success" role="status">
 					{props.state.successMessage}
@@ -371,7 +376,25 @@ function CategoriesPanel(props: CategoriesViewProps) {
 						onOpenDelete={props.onOpenDelete}
 					/>
 				)}
+		</>
+	);
+}
 
+function CategoriesPanel(props: CategoriesViewProps) {
+	return (
+		<section
+			className="panel categories-panel"
+			aria-label="Listado de categorías"
+		>
+			<CategoriesPanelHeader
+				state={props.state}
+				onOpenCreate={props.onOpenCreate}
+			/>
+			<CategoriesPanelBody
+				state={props.state}
+				onOpenEdit={props.onOpenEdit}
+				onOpenDelete={props.onOpenDelete}
+			/>
 			<CategoriesPagination
 				state={props.state}
 				onPreviousPage={props.onPreviousPage}

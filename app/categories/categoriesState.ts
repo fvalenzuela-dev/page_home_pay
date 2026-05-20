@@ -37,7 +37,7 @@ const DEFAULT_CATEGORIES_STATE: CategoriesState = {
 };
 
 function withDefault<T>(value: T | undefined, fallback: T): T {
-	return value === undefined ? fallback : value;
+	return value ?? fallback;
 }
 
 function getTotalItems(overrides: PartialInitialState): number {

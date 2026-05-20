@@ -62,7 +62,7 @@ function collectElements(node: ReactNode): ReactElement<ElementProps>[] {
 	}
 
 	if (typeof node.type === "function") {
-		const renderComponent = node.type as (props: ElementProps) => ReactNode;
+		const renderComponent = node.type as (_props: ElementProps) => ReactNode;
 
 		return collectElements(renderComponent(node.props));
 	}
@@ -80,7 +80,7 @@ function callHandler(handler: unknown, event?: unknown) {
 		throw new Error("Expected a handler function");
 	}
 
-	(handler as (...args: unknown[]) => void)(event);
+	(handler as (..._args: unknown[]) => void)(event);
 }
 
 describe("CategoriesScreen", () => {
