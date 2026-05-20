@@ -22,8 +22,8 @@ interface HomeDashboardViewProps {
 	pageSize: number;
 	totalRecords: number;
 	totalPages: number;
-	onPageChange: (nextPage: number) => void;
-	onPageSizeChange: (nextPageSize: number) => void;
+	onPageChange: (_page: number) => void;
+	onPageSizeChange: (_pageSize: number) => void;
 }
 
 const merchantNames = [
@@ -93,6 +93,28 @@ export function getPaginatedHomeRecords(
 		totalPages,
 		records: records.slice(start, start + pageSize),
 	};
+}
+
+function HomeRecordRow({ record }: { record: HomeRecord }) {
+	return (
+		<tr>
+			<td>
+				<span
+					className={`home-record-dot categories-color-${record.color}`}
+					aria-hidden="true"
+				/>
+				{record.merchant}
+			</td>
+			<td>{record.category}</td>
+			<td>{record.dueDate}</td>
+			<td>
+				<span className={`status-chip ${record.status.toLowerCase()}`}>
+					{record.status}
+				</span>
+			</td>
+			<td>{record.amount}</td>
+		</tr>
+	);
 }
 
 export function HomeDashboardView({
@@ -177,25 +199,7 @@ export function HomeDashboardView({
 						</thead>
 						<tbody>
 							{records.map((record) => (
-								<tr key={record.id}>
-									<td>
-										<span
-											className={`home-record-dot categories-color-${record.color}`}
-											aria-hidden="true"
-										/>
-										{record.merchant}
-									</td>
-									<td>{record.category}</td>
-									<td>{record.dueDate}</td>
-									<td>
-										<span
-											className={`status-chip ${record.status.toLowerCase()}`}
-										>
-											{record.status}
-										</span>
-									</td>
-									<td>{record.amount}</td>
-								</tr>
+								<HomeRecordRow key={record.id} record={record} />
 							))}
 						</tbody>
 					</table>
