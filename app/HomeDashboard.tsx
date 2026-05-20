@@ -22,8 +22,8 @@ interface HomeDashboardViewProps {
 	pageSize: number;
 	totalRecords: number;
 	totalPages: number;
-	onPageChange: (page: number) => void;
-	onPageSizeChange: (pageSize: number) => void;
+	onPageChange: (nextPage: number) => void;
+	onPageSizeChange: (nextPageSize: number) => void;
 }
 
 const merchantNames = [
@@ -148,7 +148,9 @@ export function HomeDashboardView({
 						<select
 							aria-label="Rows per page"
 							value={pageSize}
-							onChange={(event) => onPageSizeChange(Number(event.target.value))}
+							onChange={(event) => {
+								onPageSizeChange(Number(event.target.value));
+							}}
 						>
 							{PAGE_SIZE_OPTIONS.map((option) => (
 								<option key={option} value={option}>
@@ -203,7 +205,9 @@ export function HomeDashboardView({
 					<button
 						disabled={page <= 1}
 						type="button"
-						onClick={() => onPageChange(page - 1)}
+						onClick={() => {
+							onPageChange(page - 1);
+						}}
 					>
 						Anterior
 					</button>
@@ -213,7 +217,9 @@ export function HomeDashboardView({
 					<button
 						disabled={page >= totalPages}
 						type="button"
-						onClick={() => onPageChange(page + 1)}
+						onClick={() => {
+							onPageChange(page + 1);
+						}}
 					>
 						Siguiente
 					</button>

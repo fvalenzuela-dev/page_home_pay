@@ -4,8 +4,9 @@ import {
 	type ReactElement,
 	type ReactNode,
 } from "react";
+import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it, vi } from "vitest";
-import {
+import HomeDashboard, {
 	HomeDashboardView,
 	MOCK_HOME_RECORDS,
 	PAGE_SIZE_OPTIONS,
@@ -249,7 +250,7 @@ describe("HomePage", () => {
 	it("renders all theme variant actions and the paginated grid view", () => {
 		const pageChange = vi.fn();
 		const pageSizeChange = vi.fn();
-		const pagination = getPaginatedHomeRecords(MOCK_HOME_RECORDS, 1, 10);
+		const pagination = getPaginatedHomeRecords(MOCK_HOME_RECORDS, 2, 10);
 		const view = asElement(
 			HomeDashboardView({
 				records: pagination.records,
@@ -268,7 +269,10 @@ describe("HomePage", () => {
 		const table = elementChildren(tableWrap)[0];
 		const [, , tbody] = elementChildren(table);
 		const rows = elementChildren(tbody);
-		const [, , nextButton] = elementChildren(paginationNav);
+		const [gridHeader] = elementChildren(gridPanel);
+		const [, pageSizeControl] = elementChildren(gridHeader);
+		const [, pageSizeSelect] = elementChildren(pageSizeControl);
+		const [previousButton, , nextButton] = elementChildren(paginationNav);
 
 		requireClassName(view, "dashboard-layout");
 		requireId(actionsPanel, "administración");
@@ -282,17 +286,39 @@ describe("HomePage", () => {
 		);
 		expect(rows).toHaveLength(10);
 		expect(textFrom(table.props.children)).toMatch(
-			/Showing\s+1\s+-\s+10\s+of\s+50\s+mock records/,
+			/Showing\s+11\s+-\s+20\s+of\s+50\s+mock records/,
 		);
 		expect(textFrom(paginationNav.props.children)).toMatch(
-			/Página\s+1\s+de\s+5/,
+			/Página\s+2\s+de\s+5/,
 		);
+
+		const changePageSize = pageSizeSelect.props.onChange;
+		if (typeof changePageSize !== "function") {
+			throw new Error("Expected page size select to have an onChange handler");
+		}
+		changePageSize({ target: { value: "25" } } as never);
+		expect(pageSizeChange).toHaveBeenCalledWith(25);
+
+		const previousPage = previousButton.props.onClick;
+		if (typeof previousPage !== "function") {
+			throw new Error("Expected previous page button to have an onClick handler");
+		}
+		previousPage({} as never);
+		expect(pageChange).toHaveBeenCalledWith(1);
 
 		const nextPage = nextButton.props.onClick;
 		if (typeof nextPage !== "function") {
 			throw new Error("Expected next page button to have an onClick handler");
 		}
 		nextPage({} as never);
-		expect(pageChange).toHaveBeenCalledWith(2);
+		expect(pageChange).toHaveBeenCalledWith(3);
+	});
+
+	it("renders the client dashboard with default pagination state", () => {
+		const markup = renderToStaticMarkup(<HomeDashboard />);
+
+		expect(markup).toContain("Showing 1-10 of 50 mock records");
+		expect(markup).toContain("Página 1 de 5");
+		expect(markup).toContain("Rows per page");
 	});
 });
