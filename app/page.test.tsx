@@ -23,6 +23,11 @@ async function renderHomePageElement() {
 	return asElement(HomePage());
 }
 
+async function renderHomeHeaderElement() {
+	const { default: AppHeader } = await import("./AppHeader");
+	return asElement(AppHeader({}));
+}
+
 function asElement(node: ReactNode): ReactElement<ElementProps> {
 	if (!isValidElement<ElementProps>(node)) {
 		throw new Error("Expected a React element");
@@ -101,8 +106,8 @@ function requireAriaLabel(
 describe("HomePage", () => {
 	it("renders the initial application shell with navigation", async () => {
 		const main = await renderHomePageElement();
-		const [headerNode, heroNode] = Children.toArray(main.props.children);
-		const header = asElement(headerNode);
+		const [, heroNode] = Children.toArray(main.props.children);
+		const header = await renderHomeHeaderElement();
 		const hero = asElement(heroNode);
 
 		expect(main.type).toBe("main");
@@ -112,14 +117,14 @@ describe("HomePage", () => {
 		expect(header.props["aria-label"]).toBeUndefined();
 		expect(textFrom(header.props.children)).toContain("Dashboard");
 		expect(textFrom(header.props.children)).toContain("Administración");
+		expect(textFrom(header.props.children)).toContain("Categorías");
 		expect(textFrom(header.props.children)).toContain("Contacto");
 		requireClassName(hero, "hero-section");
 		requireAriaLabelledBy(hero, "home-title");
 	});
 
 	it("includes theme controls", async () => {
-		const main = await renderHomePageElement();
-		const header = asElement(Children.toArray(main.props.children)[0]);
+		const header = await renderHomeHeaderElement();
 		const userActions = asElement(Children.toArray(header.props.children)[2]);
 		const [legendNode, themeToggleNode] = Children.toArray(
 			userActions.props.children,
@@ -157,8 +162,7 @@ describe("HomePage", () => {
 	});
 
 	it("includes an account dropdown menu", async () => {
-		const main = await renderHomePageElement();
-		const header = asElement(Children.toArray(main.props.children)[0]);
+		const header = await renderHomeHeaderElement();
 		const userActions = asElement(Children.toArray(header.props.children)[2]);
 		const accountMenu = asElement(
 			Children.toArray(userActions.props.children)[2],
@@ -182,26 +186,43 @@ describe("HomePage", () => {
 		);
 	});
 
-	it("links navigation items to shell sections", async () => {
+	it("links navigation items and administration submenu", async () => {
 		const main = await renderHomePageElement();
-		const header = asElement(Children.toArray(main.props.children)[0]);
+		const header = await renderHomeHeaderElement();
 		const nav = asElement(Children.toArray(header.props.children)[1]);
-		const navLinks = Children.toArray(nav.props.children).map(asElement);
+		const [dashboardLinkNode, adminSubmenuNode, contactLinkNode] =
+			Children.toArray(nav.props.children);
+		const dashboardLink = asElement(dashboardLinkNode);
+		const adminSubmenu = asElement(adminSubmenuNode);
+		const contactLink = asElement(contactLinkNode);
+		const [adminSummaryNode, adminPanelNode] = Children.toArray(
+			adminSubmenu.props.children,
+		);
+		const adminSummary = asElement(adminSummaryNode);
+		const adminPanelMenu = asElement(adminPanelNode);
+		const adminLinks = Children.toArray(adminPanelMenu.props.children).map(
+			asElement,
+		);
 		const hero = asElement(Children.toArray(main.props.children)[1]);
 		const contentGrid = asElement(Children.toArray(main.props.children)[2]);
-		const [adminPanelNode, contactPanelNode] = Children.toArray(
+		const [adminSectionNode, contactPanelNode] = Children.toArray(
 			contentGrid.props.children,
 		);
-		const adminPanel = asElement(adminPanelNode);
+		const adminSection = asElement(adminSectionNode);
 		const contactPanel = asElement(contactPanelNode);
 
-		expect(navLinks.map((link) => link.props.href)).toEqual([
-			"#dashboard",
+		expect(dashboardLink.props.href).toBe("#dashboard");
+		expect(contactLink.props.href).toBe("#contacto");
+		expect(adminSubmenu.type).toBe("details");
+		requireClassName(adminSubmenu, "nav-submenu");
+		expect(textFrom(adminSummary.props.children)).toContain("Administración");
+		expect(adminLinks.map((link) => link.props.href)).toEqual([
 			"#administración",
-			"#contacto",
+			"/categories",
 		]);
+		expect(textFrom(adminPanelMenu.props.children)).toContain("Categorías");
 		requireId(hero, "dashboard");
-		requireId(adminPanel, "administración");
+		requireId(adminSection, "administración");
 		requireId(contactPanel, "contacto");
 	});
 
