@@ -279,10 +279,8 @@ describe("HomePage", () => {
 		requireId(gridPanel, "payment-grid");
 		requireId(contactPanel, "contacto");
 		expect(actionButtons).toHaveLength(CATEGORY_COLOR_OPTIONS.length);
-		expect(
-			actionButtons.map((button) => textFrom(button.props.children)),
-		).toEqual(
-			CATEGORY_COLOR_OPTIONS.map((option) => `${option.label} ${option.value}`),
+		expect(actionButtons.map((button) => button.props.option)).toEqual(
+			CATEGORY_COLOR_OPTIONS,
 		);
 		expect(rows).toHaveLength(10);
 		expect(textFrom(table.props.children)).toMatch(

@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, type Dispatch } from "react";
 import {
 	CATEGORY_COLOR_OPTIONS,
 	type CategoryColor,
@@ -22,8 +22,8 @@ interface HomeDashboardViewProps {
 	pageSize: number;
 	totalRecords: number;
 	totalPages: number;
-	onPageChange: (_page: number) => void;
-	onPageSizeChange: (_pageSize: number) => void;
+	onPageChange: Dispatch<number>;
+	onPageSizeChange: Dispatch<number>;
 }
 
 const merchantNames = [
@@ -95,6 +95,22 @@ export function getPaginatedHomeRecords(
 	};
 }
 
+function ThemeActionButton({
+	option,
+}: {
+	option: (typeof CATEGORY_COLOR_OPTIONS)[number];
+}) {
+	return (
+		<button
+			className={`theme-action-button theme-action-${option.value}`}
+			type="button"
+		>
+			<span>{option.label}</span>
+			<small>{option.value}</small>
+		</button>
+	);
+}
+
 function HomeRecordRow({ record }: { record: HomeRecord }) {
 	return (
 		<tr>
@@ -147,14 +163,7 @@ export function HomeDashboardView({
 
 				<form className="theme-actions-form" aria-label="Theme color actions">
 					{CATEGORY_COLOR_OPTIONS.map((option) => (
-						<button
-							className={`theme-action-button theme-action-${option.value}`}
-							key={option.value}
-							type="button"
-						>
-							<span>{option.label}</span>
-							<small>{option.value}</small>
-						</button>
+						<ThemeActionButton key={option.value} option={option} />
 					))}
 				</form>
 			</article>
