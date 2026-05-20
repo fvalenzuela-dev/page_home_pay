@@ -1,4 +1,4 @@
-import type { FormEvent } from "react";
+import type { Dispatch, FormEventHandler } from "react";
 
 import AppHeader from "../AppHeader";
 import {
@@ -18,13 +18,13 @@ export interface CategoriesViewProps {
 	onPreviousPage: () => void;
 	onNextPage: () => void;
 	onOpenCreate: () => void;
-	onOpenEdit: (_categoryId: number) => void;
-	onOpenDelete: (_categoryId: number) => void;
-	onUpdateDraftField: (
-		_categoryField: keyof UpdateCategoryInput,
-		_fieldValue: string,
-	) => void;
-	onSubmitEdit: (_formEvent: FormEvent<HTMLFormElement>) => void;
+	onOpenEdit: Dispatch<number>;
+	onOpenDelete: Dispatch<number>;
+	onUpdateDraftField: Dispatch<{
+		field: keyof UpdateCategoryInput;
+		value: string;
+	}>;
+	onSubmitEdit: FormEventHandler<HTMLFormElement>;
 	onCancelEdit: () => void;
 	onConfirmDelete: () => void;
 	onCancelDelete: () => void;
@@ -32,14 +32,14 @@ export interface CategoriesViewProps {
 
 interface CategoriesTableProps {
 	categories: Category[];
-	onOpenEdit: (_categoryId: number) => void;
-	onOpenDelete: (_categoryId: number) => void;
+	onOpenEdit: Dispatch<number>;
+	onOpenDelete: Dispatch<number>;
 }
 
 interface CategoryRowProps {
 	category: Category;
-	onOpenEdit: (_categoryId: number) => void;
-	onOpenDelete: (_categoryId: number) => void;
+	onOpenEdit: Dispatch<number>;
+	onOpenDelete: Dispatch<number>;
 }
 
 function CategoryRow({ category, onOpenEdit, onOpenDelete }: CategoryRowProps) {
@@ -161,7 +161,10 @@ function CategoryNameField(
 				required
 				value={props.state.editDraft?.name ?? ""}
 				onChange={(event) => {
-					props.onUpdateDraftField("name", getInputValue(event));
+					props.onUpdateDraftField({
+						field: "name",
+						value: getInputValue(event),
+					});
 				}}
 			/>
 		</label>
@@ -235,7 +238,10 @@ function IconOptions(
 							type="radio"
 							value={option.value}
 							onChange={(event) => {
-								props.onUpdateDraftField("iconWeb", getInputValue(event));
+								props.onUpdateDraftField({
+									field: "iconWeb",
+									value: getInputValue(event),
+								});
 							}}
 						/>
 						<span
@@ -267,7 +273,10 @@ function ColorOptions(
 							type="radio"
 							value={option.value}
 							onChange={(event) => {
-								props.onUpdateDraftField("colorWeb", getInputValue(event));
+								props.onUpdateDraftField({
+									field: "colorWeb",
+									value: getInputValue(event),
+								});
 							}}
 						/>
 						<span
