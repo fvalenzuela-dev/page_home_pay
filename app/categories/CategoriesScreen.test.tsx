@@ -61,6 +61,12 @@ function collectElements(node: ReactNode): ReactElement<ElementProps>[] {
 		return [];
 	}
 
+	if (typeof node.type === "function") {
+		const renderComponent = node.type as (props: ElementProps) => ReactNode;
+
+		return collectElements(renderComponent(node.props));
+	}
+
 	return [
 		node,
 		...Children.toArray(node.props.children).flatMap((child) =>
@@ -74,7 +80,7 @@ function callHandler(handler: unknown, event?: unknown) {
 		throw new Error("Expected a handler function");
 	}
 
-	(handler as (value?: unknown) => void)(event);
+	(handler as (...args: unknown[]) => void)(event);
 }
 
 describe("CategoriesScreen", () => {
@@ -82,7 +88,7 @@ describe("CategoriesScreen", () => {
 		getToken.mockResolvedValue("test-token");
 	});
 
-	it("renders loading, empty, error, and populated states", async () => {
+	it("renders loading, empty, and error states", async () => {
 		const { default: CategoriesScreen } = await loadScreen();
 
 		requireMarkup(
@@ -112,6 +118,10 @@ describe("CategoriesScreen", () => {
 			),
 			"Falló",
 		);
+	});
+
+	it("renders populated category rows", async () => {
+		const { default: CategoriesScreen } = await loadScreen();
 		const populated = renderToStaticMarkup(
 			<CategoriesScreen
 				autoLoad={false}
@@ -372,14 +382,8 @@ describe("CategoriesScreen", () => {
 		expect(handlers.onCancelDelete).toHaveBeenCalledOnce();
 	});
 
-	it("normalizes state defaults and no-op modal lookups safely", async () => {
-		const {
-			createCategoriesState,
-			openCreateModal,
-			openDeleteConfirmation,
-			openEditModal,
-			removeDeletedCategory,
-		} = await loadScreen();
+	it("normalizes state defaults", async () => {
+		const { createCategoriesState, openCreateModal } = await loadScreen();
 
 		expect(
 			createCategoriesState({
@@ -412,6 +416,12 @@ describe("CategoriesScreen", () => {
 				iconWeb: "home",
 			}),
 		);
+	});
+
+	it("handles no-op modal lookups safely", async () => {
+		const { openDeleteConfirmation, openEditModal, removeDeletedCategory } =
+			await loadScreen();
+
 		expect(
 			openEditModal({ status: "success", categories: [] }, 99).editDraft,
 		).toBeNull();
