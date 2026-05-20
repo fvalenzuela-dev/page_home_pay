@@ -111,6 +111,10 @@ function ThemeActionButton({
 	);
 }
 
+const THEME_ACTION_BUTTONS = CATEGORY_COLOR_OPTIONS.map((option) => (
+	<ThemeActionButton key={option.value} option={option} />
+));
+
 function HomeRecordRow({ record }: { record: HomeRecord }) {
 	return (
 		<tr>
@@ -162,9 +166,7 @@ export function HomeDashboardView({
 				</div>
 
 				<form className="theme-actions-form" aria-label="Theme color actions">
-					{CATEGORY_COLOR_OPTIONS.map((option) => (
-						<ThemeActionButton key={option.value} option={option} />
-					))}
+					{THEME_ACTION_BUTTONS}
 				</form>
 			</article>
 
