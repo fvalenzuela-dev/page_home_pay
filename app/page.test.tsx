@@ -50,7 +50,42 @@ async function renderHomeHeaderMarkup() {
 }
 
 function getFirstTag(markup: string, tagName: string) {
-	return markup.match(new RegExp(`<${tagName}\\b[^>]*>`, "i"))?.[0] ?? "";
+	return getOpeningTags(markup, tagName)[0] ?? "";
+}
+
+function getOpeningTags(markup: string, tagName: string) {
+	const tagPrefix = `<${tagName.toLowerCase()}`;
+	const lowerMarkup = markup.toLowerCase();
+	const openingTags: string[] = [];
+	let searchIndex = 0;
+
+	while (searchIndex < markup.length) {
+		const tagStart = lowerMarkup.indexOf(tagPrefix, searchIndex);
+
+		if (tagStart === -1) {
+			break;
+		}
+
+		const tagNameEnd = tagStart + tagPrefix.length;
+		if (!isTagBoundary(markup[tagNameEnd])) {
+			searchIndex = tagNameEnd;
+			continue;
+		}
+
+		const tagEnd = markup.indexOf(">", tagNameEnd);
+		if (tagEnd === -1) {
+			break;
+		}
+
+		openingTags.push(markup.slice(tagStart, tagEnd + 1));
+		searchIndex = tagEnd + 1;
+	}
+
+	return openingTags;
+}
+
+function isTagBoundary(character: string | undefined) {
+	return character === undefined || character === ">" || /\s/.test(character);
 }
 
 function hasTagWithAttribute(
@@ -59,10 +94,11 @@ function hasTagWithAttribute(
 	attributeName: string,
 	attributeValue: string,
 ) {
-	return new RegExp(
-		`<${tagName}\\b[^>]*\\s${attributeName}="${attributeValue}"`,
-		"i",
-	).test(markup);
+	const attributeText = `${attributeName.toLowerCase()}="${attributeValue.toLowerCase()}"`;
+
+	return getOpeningTags(markup, tagName).some((tagMarkup) =>
+		tagMarkup.toLowerCase().includes(attributeText),
+	);
 }
 
 function getClassNameFromTag(tagMarkup: string) {

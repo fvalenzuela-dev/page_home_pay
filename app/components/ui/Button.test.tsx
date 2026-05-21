@@ -4,7 +4,27 @@ import { describe, expect, it } from "vitest";
 import Button from "./Button";
 
 function hasOpeningTag(markup: string, tagName: string) {
-	return new RegExp(`<${tagName}\\b`, "i").test(markup);
+	const tagPrefix = `<${tagName.toLowerCase()}`;
+	const lowerMarkup = markup.toLowerCase();
+	let searchIndex = 0;
+
+	while (searchIndex < markup.length) {
+		const tagStart = lowerMarkup.indexOf(tagPrefix, searchIndex);
+
+		if (tagStart === -1) {
+			return false;
+		}
+
+		const tagNameEnd = tagStart + tagPrefix.length;
+		const nextCharacter = markup[tagNameEnd];
+		if (nextCharacter === undefined || nextCharacter === ">" || /\s/.test(nextCharacter)) {
+			return true;
+		}
+
+		searchIndex = tagNameEnd;
+	}
+
+	return false;
 }
 
 describe("Button", () => {
