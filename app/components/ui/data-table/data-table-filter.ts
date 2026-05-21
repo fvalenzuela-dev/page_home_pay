@@ -2,7 +2,7 @@ import type { SearchableValuesGetter } from "./data-table-types";
 
 interface GlobalFilterRow<TData> {
 	original: TData;
-	getValue: (_columnId: string) => unknown;
+	getValue: (...args: [string]) => unknown;
 	getAllCells: () => { getValue: () => unknown }[];
 }
 

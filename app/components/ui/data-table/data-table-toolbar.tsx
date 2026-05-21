@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 
-type GlobalFilterChangeHandler = (_nextValue: string) => void;
+type GlobalFilterChangeHandler = (...args: [string]) => void;
 
 interface DataTableToolbarProps {
 	globalFilter: string;

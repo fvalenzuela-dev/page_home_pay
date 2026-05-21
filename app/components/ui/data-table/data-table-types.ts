@@ -1,9 +1,9 @@
 import type { ColumnDef } from "@tanstack/react-table";
 import type { Key, ReactNode } from "react";
 
-export type RowIdGetter<TData> = (_record: TData) => Key;
-export type SearchableValuesGetter<TData> = (_record: TData) => unknown[];
-export type TotalSummaryRenderer = (count: number) => ReactNode;
+export type RowIdGetter<TData> = (...args: [TData]) => Key;
+export type SearchableValuesGetter<TData> = (...args: [TData]) => unknown[];
+export type TotalSummaryRenderer = (...args: [number]) => ReactNode;
 
 export interface DataTableProps<TData, TValue> {
 	id?: string;
