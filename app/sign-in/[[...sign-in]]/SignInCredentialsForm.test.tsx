@@ -36,6 +36,10 @@ function requireMarkup(markup: string, expectedContent: string) {
 	}
 }
 
+function countSubmitButtons(markup: string) {
+	return [...markup.matchAll(/<button\b[^>]*type="submit"/g)].length;
+}
+
 function makeSubmitOptions() {
 	return {
 		identifier: TEST_IDENTIFIER,
@@ -62,13 +66,14 @@ describe("SignInCredentialsForm", () => {
 	it("renders identifier and password inputs in the same form step", async () => {
 		const markup = await renderFormMarkup();
 
-		requireMarkup(markup, "auth-credentials-form");
+		requireMarkup(markup, "grid w-full");
 		requireMarkup(markup, 'name="identifier"');
 		requireMarkup(markup, 'autoComplete="username"');
 		requireMarkup(markup, 'name="password"');
 		requireMarkup(markup, 'type="password"');
 		requireMarkup(markup, 'autoComplete="current-password"');
 		requireMarkup(markup, "Ingresar");
+		expect(countSubmitButtons(markup)).toBe(1);
 	});
 
 	it("disables submit while Clerk is unavailable", async () => {
@@ -78,7 +83,8 @@ describe("SignInCredentialsForm", () => {
 		});
 		const markup = await renderFormMarkup();
 
-		requireMarkup(markup, 'class="auth-submit-button"');
+		requireMarkup(markup, "bg-primary");
+		requireMarkup(markup, "disabled:pointer-events-none");
 		requireMarkup(markup, "disabled");
 	});
 

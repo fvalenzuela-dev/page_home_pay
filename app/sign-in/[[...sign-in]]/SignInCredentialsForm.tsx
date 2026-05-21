@@ -3,9 +3,22 @@
 import { useSignIn } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
 import { useState, type Dispatch, type SetStateAction } from "react";
+import Button from "../../components/ui/Button";
 
 const DEFAULT_SIGN_IN_ERROR =
 	"No pudimos iniciar sesión. Revisá tus credenciales e intentá nuevamente.";
+
+const formCardClassName =
+	"grid w-full gap-5 rounded-[2rem] border border-slate-200 bg-white p-6 shadow-2xl shadow-slate-950/10 sm:p-8";
+const headingGroupClassName = "grid gap-3";
+const formTitleClassName =
+	"text-3xl leading-tight font-black tracking-[-0.04em] text-slate-950 sm:text-4xl";
+const mutedTextClassName = "leading-7 text-slate-500";
+const fieldClassName = "grid gap-2 text-sm font-bold text-slate-800";
+const inputClassName =
+	"min-h-12 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-950 outline-none transition-[border-color,box-shadow] duration-150 placeholder:text-slate-400 focus:border-blue-600 focus:bg-white focus:shadow-[0_0_0_4px_rgb(37_99_235_/_12%)]";
+const errorMessageClassName =
+	"rounded-2xl bg-red-50 px-4 py-3 leading-6 text-red-700 ring-1 ring-red-100";
 
 interface ClerkErrorDetail {
 	longMessage?: string | null;
@@ -153,16 +166,16 @@ export default function SignInCredentialsForm() {
 	});
 
 	return (
-		<form className="auth-credentials-form" onSubmit={handleSubmit}>
-			<div className="auth-form-heading">
-				<p className="eyebrow">Acceso protegido</p>
-				<h2>Iniciá sesión</h2>
-				<p>Ingresá usuario o email y contraseña en un solo paso.</p>
+		<form className={formCardClassName} onSubmit={handleSubmit}>
+			<div className={headingGroupClassName}>
+				<h2 className={formTitleClassName}>Iniciá sesión</h2>
+				<p className={mutedTextClassName}>Ingresá usuario y contraseña.</p>
 			</div>
 
-			<label className="auth-field" htmlFor="identifier">
+			<label className={fieldClassName} htmlFor="identifier">
 				<span>Usuario o email</span>
 				<input
+					className={inputClassName}
 					id="identifier"
 					name="identifier"
 					type="text"
@@ -173,9 +186,10 @@ export default function SignInCredentialsForm() {
 				/>
 			</label>
 
-			<label className="auth-field" htmlFor="password">
+			<label className={fieldClassName} htmlFor="password">
 				<span>Contraseña</span>
 				<input
+					className={inputClassName}
 					id="password"
 					name="password"
 					type="password"
@@ -187,18 +201,19 @@ export default function SignInCredentialsForm() {
 			</label>
 
 			{errorMessage !== null && (
-				<p className="auth-error-message" role="alert">
+				<p className={errorMessageClassName} role="alert">
 					{errorMessage}
 				</p>
 			)}
 
-			<button
-				className="auth-submit-button"
+			<Button
+				variant="primary"
 				type="submit"
+				size="lg"
 				disabled={signIn === null || fetchStatus === "fetching" || isSubmitting}
 			>
 				{isSubmitting ? "Ingresando…" : "Ingresar"}
-			</button>
+			</Button>
 		</form>
 	);
 }

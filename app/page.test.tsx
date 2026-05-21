@@ -4,7 +4,23 @@ import {
 	type ReactElement,
 	type ReactNode,
 } from "react";
+import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it, vi } from "vitest";
+import HomeDashboard, {
+	HOME_PAYMENT_GRID_COLUMNS,
+	HomeDashboardView,
+	MOCK_HOME_RECORDS,
+	PAGE_SIZE_OPTIONS,
+	getPaginatedHomeRecords,
+	type HomeRecord,
+} from "./HomeDashboard";
+import { CATEGORY_COLOR_OPTIONS } from "./categories/categoryOptions";
+import {
+	DataTable,
+	DataTableColumnHeader,
+	createGlobalFilter,
+	type ColumnDef,
+} from "./components/ui/data-table/data-table";
 
 vi.mock("@clerk/nextjs", () => ({
 	UserButton: (props: Record<string, unknown>) => (
@@ -24,8 +40,69 @@ async function renderHomePageElement() {
 }
 
 async function renderHomeHeaderElement() {
-	const { default: AppHeader } = await import("./AppHeader");
+	const { default: AppHeader } = await import("./components/layout/AppHeader");
 	return asElement(AppHeader({}));
+}
+
+async function renderHomeHeaderMarkup() {
+	const { default: AppHeader } = await import("./components/layout/AppHeader");
+	return renderToStaticMarkup(<AppHeader />);
+}
+
+function getFirstTag(markup: string, tagName: string) {
+	return getOpeningTags(markup, tagName)[0] ?? "";
+}
+
+function getOpeningTags(markup: string, tagName: string) {
+	const tagPrefix = `<${tagName.toLowerCase()}`;
+	const lowerMarkup = markup.toLowerCase();
+	const openingTags: string[] = [];
+	let searchIndex = 0;
+
+	while (searchIndex < markup.length) {
+		const tagStart = lowerMarkup.indexOf(tagPrefix, searchIndex);
+
+		if (tagStart === -1) {
+			break;
+		}
+
+		const tagNameEnd = tagStart + tagPrefix.length;
+		if (!isTagBoundary(markup[tagNameEnd])) {
+			searchIndex = tagNameEnd;
+			continue;
+		}
+
+		const tagEnd = markup.indexOf(">", tagNameEnd);
+		if (tagEnd === -1) {
+			break;
+		}
+
+		openingTags.push(markup.slice(tagStart, tagEnd + 1));
+		searchIndex = tagEnd + 1;
+	}
+
+	return openingTags;
+}
+
+function isTagBoundary(character: string | undefined) {
+	return character === undefined || character === ">" || /\s/.test(character);
+}
+
+function hasTagWithAttribute(
+	markup: string,
+	tagName: string,
+	attributeName: string,
+	attributeValue: string,
+) {
+	const attributeText = `${attributeName.toLowerCase()}="${attributeValue.toLowerCase()}"`;
+
+	return getOpeningTags(markup, tagName).some((tagMarkup) =>
+		tagMarkup.toLowerCase().includes(attributeText),
+	);
+}
+
+function getClassNameFromTag(tagMarkup: string) {
+	return tagMarkup.match(/\sclass="([^"]*)"/i)?.[1] ?? "";
 }
 
 function asElement(node: ReactNode): ReactElement<ElementProps> {
@@ -36,28 +113,17 @@ function asElement(node: ReactNode): ReactElement<ElementProps> {
 	return node;
 }
 
-function textFrom(node: ReactNode): string {
-	return Children.toArray(node)
-		.map((child) => {
-			if (typeof child === "string" || typeof child === "number") {
-				return String(child);
-			}
-
-			if (isValidElement<ElementProps>(child)) {
-				return textFrom(child.props.children);
-			}
-
-			return "";
-		})
-		.join(" ");
+function elementChildren(element: ReactElement<ElementProps>) {
+	return Children.toArray(element.props.children).map(asElement);
 }
 
-function requireClassName(
+function requireClassNameContains(
 	element: ReactElement<ElementProps>,
 	expectedValue: string,
 ) {
-	if (element.props.className !== expectedValue) {
-		throw new Error(`Expected className to be ${expectedValue}`);
+	const className = element.props.className;
+	if (typeof className !== "string" || !className.includes(expectedValue)) {
+		throw new Error(`Expected className to contain ${expectedValue}`);
 	}
 }
 
@@ -70,180 +136,238 @@ function requireAriaLabelledBy(
 	}
 }
 
-function requireHtmlFor(
-	element: ReactElement<ElementProps>,
-	expectedValue: string,
-) {
-	if (element.props.htmlFor !== expectedValue) {
-		throw new Error(`Expected htmlFor prop to be ${expectedValue}`);
-	}
-}
-
 function requireId(element: ReactElement<ElementProps>, expectedValue: string) {
 	if (element.props.id !== expectedValue) {
 		throw new Error(`Expected id prop to be ${expectedValue}`);
 	}
 }
 
-function requireType(
-	element: ReactElement<ElementProps>,
-	expectedValue: string,
-) {
-	if (element.props.type !== expectedValue) {
-		throw new Error(`Expected type prop to be ${expectedValue}`);
-	}
-}
-
-function requireAriaLabel(
-	element: ReactElement<ElementProps>,
-	expectedValue: string,
-) {
-	if (element.props["aria-label"] !== expectedValue) {
-		throw new Error(`Expected aria-label prop to be ${expectedValue}`);
-	}
-}
-
 describe("HomePage", () => {
-	it("renders the initial application shell with navigation", async () => {
+	it("renders the application shell with the redesigned dashboard", async () => {
 		const main = await renderHomePageElement();
-		const [, heroNode] = Children.toArray(main.props.children);
+		const [, heroNode, dashboardNode] = Children.toArray(main.props.children);
 		const header = await renderHomeHeaderElement();
 		const hero = asElement(heroNode);
+		const dashboard = asElement(dashboardNode);
+
+		const headerMarkup = await renderHomeHeaderMarkup();
 
 		expect(main.type).toBe("main");
-		requireClassName(main, "app-shell");
+		requireClassNameContains(main, "min-h-screen");
+		requireClassNameContains(main, "has-[#theme-switch:checked]");
 		expect(main.props["data-theme"]).toBeUndefined();
-		requireClassName(header, "top-navigation");
-		expect(header.props["aria-label"]).toBeUndefined();
-		expect(textFrom(header.props.children)).toContain("Dashboard");
-		expect(textFrom(header.props.children)).toContain("Administración");
-		expect(textFrom(header.props.children)).toContain("Categorías");
-		expect(textFrom(header.props.children)).toContain("Contacto");
-		requireClassName(hero, "hero-section");
+		requireClassNameContains(header, "sticky top-0");
+		expect(headerMarkup).toContain("Dashboard");
+		expect(headerMarkup).toContain("Administración");
+		expect(headerMarkup).toContain("Categorías");
+		expect(headerMarkup).toContain("Contacto");
+		requireClassNameContains(hero, "max-w-[1200px]");
 		requireAriaLabelledBy(hero, "home-title");
+		expect(typeof dashboard.type).toBe("function");
 	});
 
 	it("includes theme controls", async () => {
-		const header = await renderHomeHeaderElement();
-		const userActions = asElement(Children.toArray(header.props.children)[2]);
-		const [legendNode, themeToggleNode] = Children.toArray(
-			userActions.props.children,
-		);
-		const legend = asElement(legendNode);
-		const themeToggle = asElement(themeToggleNode);
-
-		if (userActions.type !== "fieldset") {
-			throw new Error("Expected user actions to render a fieldset");
-		}
-		requireClassName(userActions, "user-actions");
-		if (legend.type !== "legend") {
-			throw new Error("Expected user actions to include a legend");
-		}
-		requireClassName(legend, "sr-only");
-		expect(textFrom(legend.props.children)).toContain(
-			"Logged-in user management",
+		const markup = await renderHomeHeaderMarkup();
+		const fieldsetClassName = getClassNameFromTag(getFirstTag(markup, "fieldset"));
+		const legendClassName = getClassNameFromTag(getFirstTag(markup, "legend"));
+		const labelClassName = getClassNameFromTag(
+			getFirstTag(markup, "label"),
 		);
 
-		const [themeInputNode] = Children.toArray(themeToggle.props.children);
-		const themeInput = asElement(themeInputNode);
-		if (themeToggle.type !== "label") {
-			throw new Error("Expected theme toggle to render a label");
-		}
-		requireClassName(themeToggle, "theme-toggle");
-		requireHtmlFor(themeToggle, "theme-switch");
-		if (themeInput.type !== "input") {
-			throw new Error("Expected theme toggle control to render an input");
-		}
-		requireId(themeInput, "theme-switch");
-		requireType(themeInput, "checkbox");
-		requireAriaLabel(themeInput, "Toggle dark and light theme");
-		expect(textFrom(themeToggle.props.children)).toContain("☀");
-		expect(textFrom(themeToggle.props.children)).toContain("☾");
+		expect(fieldsetClassName).toContain("flex min-w-0");
+		expect(legendClassName).toBe("sr-only");
+		expect(markup).toContain("Logged-in user management");
+		expect(labelClassName).toContain("relative inline-grid");
+		expect(hasTagWithAttribute(markup, "label", "for", "theme-switch")).toBe(
+			true,
+		);
+		expect(hasTagWithAttribute(markup, "input", "id", "theme-switch")).toBe(
+			true,
+		);
+		expect(hasTagWithAttribute(markup, "input", "type", "checkbox")).toBe(
+			true,
+		);
+		expect(
+			hasTagWithAttribute(
+				markup,
+				"input",
+				"aria-label",
+				"Toggle dark and light theme",
+			),
+		).toBe(true);
+		expect(markup).toContain("☀");
+		expect(markup).toContain("☾");
 	});
 
 	it("includes an account dropdown menu", async () => {
-		const header = await renderHomeHeaderElement();
-		const userActions = asElement(Children.toArray(header.props.children)[2]);
-		const accountMenu = asElement(
-			Children.toArray(userActions.props.children)[2],
-		);
+		const markup = await renderHomeHeaderMarkup();
 
-		requireClassName(accountMenu, "account-menu");
-		expect(textFrom(accountMenu.props.children)).not.toContain("Usuario");
-
-		const userButton = asElement(
-			Children.toArray(accountMenu.props.children)[0],
-		);
-		expect(userButton.props.showName).toBe(true);
-		expect(userButton.props.userProfileMode).toBe("modal");
-		expect(userButton.props.appearance).toEqual(
-			expect.objectContaining({
-				elements: expect.objectContaining({
-					userButtonTrigger: "account-menu-trigger",
-					userButtonOuterIdentifier: "account-menu-name",
-				}),
-			}),
-		);
+		expect(markup).toContain("rounded-full border");
+		expect(markup).not.toContain("Usuario");
+		expect(markup).toContain('data-testid="user-button"');
+		expect(markup).toContain("Perfil y cerrar sesión");
 	});
 
 	it("links navigation items and administration submenu", async () => {
 		const main = await renderHomePageElement();
-		const header = await renderHomeHeaderElement();
-		const nav = asElement(Children.toArray(header.props.children)[1]);
-		const [dashboardLinkNode, adminSubmenuNode, contactLinkNode] =
-			Children.toArray(nav.props.children);
-		const dashboardLink = asElement(dashboardLinkNode);
-		const adminSubmenu = asElement(adminSubmenuNode);
-		const contactLink = asElement(contactLinkNode);
-		const [adminSummaryNode, adminPanelNode] = Children.toArray(
-			adminSubmenu.props.children,
-		);
-		const adminSummary = asElement(adminSummaryNode);
-		const adminPanelMenu = asElement(adminPanelNode);
-		const adminLinks = Children.toArray(adminPanelMenu.props.children).map(
-			asElement,
-		);
+		const markup = await renderHomeHeaderMarkup();
+		const detailsClassName = getClassNameFromTag(getFirstTag(markup, "details"));
 		const hero = asElement(Children.toArray(main.props.children)[1]);
-		const contentGrid = asElement(Children.toArray(main.props.children)[2]);
-		const [adminSectionNode, contactPanelNode] = Children.toArray(
-			contentGrid.props.children,
-		);
-		const adminSection = asElement(adminSectionNode);
-		const contactPanel = asElement(contactPanelNode);
 
-		expect(dashboardLink.props.href).toBe("#dashboard");
-		expect(contactLink.props.href).toBe("#contacto");
-		expect(adminSubmenu.type).toBe("details");
-		requireClassName(adminSubmenu, "nav-submenu");
-		expect(textFrom(adminSummary.props.children)).toContain("Administración");
-		expect(adminLinks.map((link) => link.props.href)).toEqual([
-			"#administración",
-			"/categories",
-		]);
-		expect(textFrom(adminPanelMenu.props.children)).toContain("Categorías");
+		expect(hasTagWithAttribute(markup, "a", "href", "#dashboard")).toBe(true);
+		expect(hasTagWithAttribute(markup, "a", "href", "#contacto")).toBe(true);
+		expect(detailsClassName).toContain("group relative");
+		expect(markup).toContain("Administración");
+		expect(hasTagWithAttribute(markup, "a", "href", "#administración")).toBe(
+			true,
+		);
+		expect(hasTagWithAttribute(markup, "a", "href", "/categories")).toBe(true);
+		expect(markup).toContain("Categorías");
 		requireId(hero, "dashboard");
-		requireId(adminSection, "administración");
-		requireId(contactPanel, "contacto");
 	});
 
-	it("structures future dashboard, administration, and contact sections", async () => {
-		const main = await renderHomePageElement();
-		const contentGrid = asElement(Children.toArray(main.props.children)[2]);
-		const [adminPanelNode, contactPanelNode] = Children.toArray(
-			contentGrid.props.children,
-		);
-		const adminPanel = asElement(adminPanelNode);
-		const contactPanel = asElement(contactPanelNode);
+	it("provides 50 mock records with safe pagination", () => {
+		expect(MOCK_HOME_RECORDS).toHaveLength(50);
+		expect(PAGE_SIZE_OPTIONS).toEqual([10, 25, 50]);
 
-		requireClassName(contentGrid, "content-grid");
-		requireId(adminPanel, "administración");
-		requireId(contactPanel, "contacto");
-		expect(textFrom(adminPanel.props.children)).toContain("Próximos pagos");
-		expect(textFrom(adminPanel.props.children)).toContain("Pending");
-		expect(textFrom(adminPanel.props.children)).toContain("Paid");
-		expect(textFrom(adminPanel.props.children)).toContain("Overdue");
-		expect(textFrom(contactPanel.props.children)).toContain(
-			"Base lista para crecer",
+		const firstPage = getPaginatedHomeRecords(MOCK_HOME_RECORDS, 1, 10);
+		const lastPage = getPaginatedHomeRecords(MOCK_HOME_RECORDS, 5, 10);
+		const clampedPage = getPaginatedHomeRecords(MOCK_HOME_RECORDS, 99, 25);
+
+		expect(firstPage.records).toHaveLength(10);
+		expect(firstPage.totalPages).toBe(5);
+		expect(firstPage.records[0]?.id).toBe(1);
+		expect(lastPage.records.at(-1)?.id).toBe(50);
+		expect(clampedPage.page).toBe(2);
+		expect(clampedPage.records).toHaveLength(25);
+	});
+
+	it("renders all theme variant actions and the paginated grid view", () => {
+		const view = asElement(
+			HomeDashboardView({
+				records: MOCK_HOME_RECORDS,
+			}),
 		);
+		const gridMarkup = renderToStaticMarkup(
+			<DataTable
+				id="payment-grid"
+				eyebrow="Grilla de pagos"
+				title="Pagos del hogar"
+				data={MOCK_HOME_RECORDS}
+				columns={HOME_PAYMENT_GRID_COLUMNS}
+				getRowId={(record) => record.id}
+				searchColumnIds={["merchant", "category", "dueDate", "status", "amount"]}
+				getSearchableRowValues={(record) => [
+					record.status === "Scheduled" ? "Programado" : record.status,
+				]}
+				searchPlaceholder="Buscar pagos..."
+				totalSummary={(total) => `${total} registros`}
+				paginationLabel="Paginación de la grilla de pagos"
+			/>,
+		);
+		const [actionsPanel, , contactPanel] = elementChildren(view);
+		const [, actionsForm] = elementChildren(actionsPanel);
+		const actionButtons = elementChildren(actionsForm);
+
+		requireClassNameContains(view, "max-w-[1200px]");
+		requireId(actionsPanel, "administración");
+		requireId(contactPanel, "contacto");
+		expect(actionButtons).toHaveLength(CATEGORY_COLOR_OPTIONS.length);
+		expect(actionButtons.map((button) => button.props.option)).toEqual(
+			CATEGORY_COLOR_OPTIONS,
+		);
+		expect(gridMarkup).toContain('id="payment-grid"');
+		expect(gridMarkup).toContain("Buscar pagos...");
+		expect(gridMarkup).toContain("50 registros");
+		expect(gridMarkup).not.toContain("Mostrando 1-10 de 50 pagos de ejemplo");
+		expect(gridMarkup).toContain("primary-container)_28%");
+		expect(gridMarkup).toContain("Página 1 de 5");
+		expect(gridMarkup).toContain("Filas por página");
+		expect(gridMarkup).toContain("even:bg-[var(--surface-container-low)]");
+		expect(gridMarkup).toContain("hover:bg-[var(--surface-container)]");
+		expect(gridMarkup).toContain("Programado");
+		expect(gridMarkup.match(/<tr/g)).toHaveLength(11);
+	});
+
+	it("matches payment status searches against visible Spanish labels", () => {
+		const filter = createGlobalFilter<HomeRecord>(["status"], (record) => [
+			record.status === "Scheduled" ? "Programado" : record.status,
+		]);
+		const addMeta = vi.fn();
+		const row = {
+			original: MOCK_HOME_RECORDS[0],
+			getValue: () => "Scheduled",
+			getAllCells: () => [],
+		};
+
+		expect(filter(row, "", "programado", addMeta)).toBe(true);
+		expect(filter(row, "", "scheduled", addMeta)).toBe(true);
+		expect(filter(row, "", "pagado", addMeta)).toBe(false);
+	});
+
+	it("renders the client dashboard with default pagination state", () => {
+		const markup = renderToStaticMarkup(<HomeDashboard />);
+
+		expect(markup).toContain("50 registros");
+		expect(markup).not.toContain("Mostrando 1-10 de 50 pagos de ejemplo");
+		expect(markup).toContain("Página 1 de 5");
+		expect(markup).toContain("Filas por página");
+	});
+
+	it("renders a reusable data table with dynamic sortable headers and cells", () => {
+		interface ProductRecord {
+			id: string;
+			name: string;
+			stock: number;
+		}
+
+		const columns: ColumnDef<ProductRecord>[] = [
+			{
+				accessorKey: "name",
+				header: ({ column }) => (
+					<DataTableColumnHeader column={column} title="Producto" />
+				),
+			},
+			{
+				accessorKey: "stock",
+				header: ({ column }) => (
+					<DataTableColumnHeader column={column} title="Disponibilidad" />
+				),
+				cell: ({ row }) => (
+					<span
+						className={row.original.stock > 0 ? "text-green-700" : "text-red-700"}
+					>
+						{row.original.stock > 0
+							? `${row.original.stock} disponibles`
+							: "Sin stock"}
+					</span>
+				),
+			},
+		];
+
+		const markup = renderToStaticMarkup(
+			<DataTable
+				eyebrow="Inventario"
+				title="Productos"
+				data={[
+					{ id: "p-1", name: "Coffee", stock: 12 },
+					{ id: "p-2", name: "Tea", stock: 0 },
+				]}
+				columns={columns}
+				getRowId={(row) => row.id}
+				searchColumnIds={["name"]}
+				searchPlaceholder="Buscar productos..."
+			/>,
+		);
+
+		expect(markup).toContain("Buscar productos...");
+		expect(markup).toContain("Producto");
+		expect(markup).toContain("Disponibilidad");
+		expect(markup).toContain("sin ordenar");
+		expect(markup).toContain("Coffee");
+		expect(markup).toContain("12 disponibles");
+		expect(markup).toContain("Sin stock");
+		expect(markup).not.toContain("Comercio");
+		expect(markup).not.toContain("Importe");
 	});
 });
