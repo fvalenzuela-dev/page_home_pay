@@ -1,151 +1,16 @@
 "use client";
 
-import {
-	flexRender,
-	getCoreRowModel,
-	getFilteredRowModel,
-	getPaginationRowModel,
-	getSortedRowModel,
-	useReactTable,
-	type ColumnDef,
-	type SortingState,
-	type Table,
-} from "@tanstack/react-table";
-import { useState, type Key, type ReactNode } from "react";
 import { DataTablePagination, PAGE_SIZE_OPTIONS } from "./data-table-pagination";
 import { DataTableToolbar } from "./data-table-toolbar";
+import { DataTableContent } from "./data-table-content";
+import { DataTableTitle } from "./data-table-title";
+import type { DataTableProps } from "./data-table-types";
+import { useDataTable } from "./use-data-table";
 
 export { DataTableColumnHeader } from "./data-table-column-header";
+export { createGlobalFilter } from "./data-table-filter";
 export { PAGE_SIZE_OPTIONS } from "./data-table-pagination";
 export type { ColumnDef } from "@tanstack/react-table";
-
-type RowIdGetter<TData> = (record: TData) => Key;
-type SearchableValuesGetter<TData> = (record: TData) => unknown[];
-type TotalSummaryRenderer = (count: number) => ReactNode;
-
-interface GlobalFilterRow<TData> {
-	original: TData;
-	getValue: (columnId: string) => unknown;
-	getAllCells: () => { getValue: () => unknown }[];
-}
-
-interface DataTableProps<TData, TValue> {
-	id?: string;
-	eyebrow: ReactNode;
-	title: ReactNode;
-	data: TData[];
-	columns: ColumnDef<TData, TValue>[];
-	getRowId?: RowIdGetter<TData>;
-	searchPlaceholder?: string;
-	searchColumnIds?: string[];
-	getSearchableRowValues?: SearchableValuesGetter<TData>;
-	filters?: ReactNode;
-	initialPageSize?: number;
-	pageSizeOptions?: readonly number[];
-	totalSummary?: TotalSummaryRenderer;
-	paginationLabel?: string;
-	emptyMessage?: ReactNode;
-}
-
-interface DataTableMarkupProps<TData> {
-	table: Table<TData>;
-	columnsLength: number;
-	emptyMessage: ReactNode;
-}
-
-const tableHeaderCellClassName =
-	"border-b border-[var(--outline-variant)] bg-[color-mix(in_srgb,var(--primary-container)_28%,var(--surface-container-lowest))] px-4 py-3.5 text-left align-middle text-xs tracking-[0.08em] text-[var(--on-surface-variant)] uppercase last:text-right";
-
-const tableCellClassName =
-	"border-b border-[var(--outline-variant)] px-4 py-3.5 text-left align-middle last:text-right group-last/row:border-b-0";
-
-const tableRowClassName =
-	"group/row even:bg-[var(--surface-container-low)] hover:bg-[var(--surface-container)] data-[state=selected]:bg-[var(--secondary-container)]";
-
-function stringifyCellValue(value: unknown) {
-	if (value === null || value === undefined) {
-		return "";
-	}
-
-	return String(value).toLowerCase();
-}
-
-export function createGlobalFilter<TData>(
-	columnIds?: string[],
-	getSearchableRowValues?: SearchableValuesGetter<TData>,
-) {
-	return (
-		row: GlobalFilterRow<TData>,
-		_columnId: string,
-		filterValue: unknown,
-		addMeta?: unknown,
-	) => {
-		void addMeta;
-		const query = String(filterValue ?? "").trim().toLowerCase();
-
-		if (!query) {
-			return true;
-		}
-
-		const searchableCells = columnIds?.length
-			? columnIds.map((id) => row.getValue(id))
-			: row.getAllCells().map((cell) => cell.getValue());
-		const searchableValues = [
-			...searchableCells,
-			...(getSearchableRowValues?.(row.original) ?? []),
-		];
-
-		return searchableValues.some((value) =>
-			stringifyCellValue(value).includes(query),
-		);
-	};
-}
-
-function DataTableHeader<TData>({ table }: Pick<DataTableMarkupProps<TData>, "table">) {
-	return table.getHeaderGroups().map((headerGroup) => (
-		<tr key={headerGroup.id}>
-			{headerGroup.headers.map((header) => (
-				<th className={tableHeaderCellClassName} key={header.id} scope="col">
-					{header.isPlaceholder
-						? null
-						: flexRender(header.column.columnDef.header, header.getContext())}
-				</th>
-			))}
-		</tr>
-	));
-}
-
-function DataTableBody<TData>({
-	table,
-	columnsLength,
-	emptyMessage,
-}: DataTableMarkupProps<TData>) {
-	const visibleRows = table.getRowModel().rows;
-
-	if (visibleRows.length === 0) {
-		return (
-			<tr className="group/row">
-				<td className={tableCellClassName} colSpan={columnsLength}>
-					{emptyMessage}
-				</td>
-			</tr>
-		);
-	}
-
-	return visibleRows.map((row) => (
-		<tr
-			className={tableRowClassName}
-			data-state={row.getIsSelected() ? "selected" : undefined}
-			key={row.id}
-		>
-			{row.getVisibleCells().map((cell) => (
-				<td className={tableCellClassName} key={cell.id}>
-					{flexRender(cell.column.columnDef.cell, cell.getContext())}
-				</td>
-			))}
-		</tr>
-	));
-}
 
 export function DataTable<TData, TValue>(props: DataTableProps<TData, TValue>) {
 	const {
@@ -165,52 +30,21 @@ export function DataTable<TData, TValue>(props: DataTableProps<TData, TValue>) {
 		paginationLabel = "Paginación de la tabla",
 		emptyMessage = "No se encontraron registros.",
 	} = props;
-	const [sorting, setSorting] = useState<SortingState>([]);
-	const [globalFilter, setGlobalFilter] = useState("");
-	// eslint-disable-next-line react-hooks/incompatible-library -- TanStack Table owns internal table functions for this reusable client component.
-	const table = useReactTable({
+	const { filteredRows, globalFilter, handleGlobalFilterChange, table } = useDataTable({
 		data,
 		columns,
-		state: {
-			sorting,
-			globalFilter,
-		},
-		initialState: {
-			pagination: {
-				pageSize: initialPageSize,
-			},
-		},
-		globalFilterFn: createGlobalFilter(searchColumnIds, getSearchableRowValues),
-		getRowId: getRowId ? (row) => String(getRowId(row)) : undefined,
-		onSortingChange: setSorting,
-		onGlobalFilterChange: setGlobalFilter,
-		getCoreRowModel: getCoreRowModel(),
-		getFilteredRowModel: getFilteredRowModel(),
-		getSortedRowModel: getSortedRowModel(),
-		getPaginationRowModel: getPaginationRowModel(),
+		getRowId,
+		getSearchableRowValues,
+		initialPageSize,
+		searchColumnIds,
 	});
-	const filteredRows = table.getFilteredRowModel().rows.length;
-
-	function handleGlobalFilterChange(value: string) {
-		setGlobalFilter(value);
-		table.setPageIndex(0);
-	}
 
 	return (
 		<article
 			className="row-span-2 rounded-3xl border border-[var(--outline-variant)] bg-[var(--surface-container-lowest)] p-6"
 			id={id}
 		>
-			<div className="mb-6 flex items-center justify-between gap-4 max-[560px]:grid max-[560px]:grid-cols-1">
-				<div>
-					<p className="text-xs leading-4 font-semibold tracking-[0.08em] text-[var(--on-surface-variant)] uppercase">
-						{eyebrow}
-					</p>
-					<h2 className="mt-2 font-['Manrope',Inter,ui-sans-serif,system-ui,sans-serif] text-[clamp(1.5rem,3vw,2rem)] leading-[1.15] tracking-[-0.02em]">
-						{title}
-					</h2>
-				</div>
-			</div>
+			<DataTableTitle eyebrow={eyebrow} title={title} />
 
 			<DataTableToolbar
 				filters={filters}
@@ -220,20 +54,11 @@ export function DataTable<TData, TValue>(props: DataTableProps<TData, TValue>) {
 				onGlobalFilterChange={handleGlobalFilterChange}
 			/>
 
-			<div className="overflow-x-auto rounded-2xl border border-[var(--outline-variant)]">
-				<table className="w-full min-w-[680px] border-collapse">
-					<thead>
-						<DataTableHeader table={table} />
-					</thead>
-					<tbody>
-						<DataTableBody
-							columnsLength={columns.length}
-							emptyMessage={emptyMessage}
-							table={table}
-						/>
-					</tbody>
-				</table>
-			</div>
+			<DataTableContent
+				columnsLength={columns.length}
+				emptyMessage={emptyMessage}
+				table={table}
+			/>
 
 			<DataTablePagination
 				label={paginationLabel}

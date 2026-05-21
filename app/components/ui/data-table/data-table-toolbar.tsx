@@ -1,8 +1,10 @@
 import type { ReactNode } from "react";
 
+type GlobalFilterChangeHandler = (nextValue: string) => void;
+
 interface DataTableToolbarProps {
 	globalFilter: string;
-	onGlobalFilterChange(value: string): void;
+	onGlobalFilterChange: GlobalFilterChangeHandler;
 	searchPlaceholder?: string;
 	filters?: ReactNode;
 	totalSummary?: ReactNode;
