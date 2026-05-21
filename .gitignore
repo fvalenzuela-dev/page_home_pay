@@ -31,6 +31,10 @@ pnpm-debug.log*
 .pi/
 .pi-lens/
 
+# Local agent/skill artifacts
+.agents/
+skills-lock.json
+
 # Local scratch/context files
 context.md
 

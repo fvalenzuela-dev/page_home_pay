@@ -1,10 +1,16 @@
 "use client";
 
-import { useMemo, useState, type Dispatch } from "react";
 import {
 	CATEGORY_COLOR_OPTIONS,
 	type CategoryColor,
 } from "./categories/categoryOptions";
+import {
+	DataTable,
+	DataTableColumnHeader,
+	type ColumnDef,
+} from "./components/ui/data-table/data-table";
+
+export { PAGE_SIZE_OPTIONS } from "./components/ui/data-table/data-table";
 
 export interface HomeRecord {
 	id: number;
@@ -18,12 +24,6 @@ export interface HomeRecord {
 
 interface HomeDashboardViewProps {
 	records: HomeRecord[];
-	page: number;
-	pageSize: number;
-	totalRecords: number;
-	totalPages: number;
-	onPageChange: Dispatch<number>;
-	onPageSizeChange: Dispatch<number>;
 }
 
 const merchantNames = [
@@ -53,8 +53,6 @@ const statuses: HomeRecord["status"][] = [
 	"Review",
 	"Overdue",
 ];
-
-export const PAGE_SIZE_OPTIONS = [10, 25, 50] as const;
 
 export const MOCK_HOME_RECORDS: HomeRecord[] = Array.from(
 	{ length: 50 },
@@ -95,6 +93,16 @@ export function getPaginatedHomeRecords(
 	};
 }
 
+const THEME_ACTION_COLOR_CLASSES: Record<CategoryColor, string> = {
+	primary: "text-[var(--primary)]",
+	secondary: "text-[var(--secondary)]",
+	success: "text-[var(--secondary)]",
+	danger: "text-[var(--error)]",
+	warning: "text-[#b26a00]",
+	info: "text-[#006a6a]",
+	neutral: "text-[var(--outline)]",
+};
+
 function ThemeActionButton({
 	option,
 }: {
@@ -102,11 +110,13 @@ function ThemeActionButton({
 }) {
 	return (
 		<button
-			className={`theme-action-button theme-action-${option.value}`}
+			className={`grid min-h-20 cursor-pointer gap-1 rounded-2xl border border-[color-mix(in_srgb,currentColor_34%,var(--outline-variant))] bg-[color-mix(in_srgb,currentColor_12%,var(--surface-container-lowest))] p-[0.9rem] text-left font-extrabold transition-[border-color,box-shadow,transform] duration-150 hover:-translate-y-px hover:shadow-[0_0.75rem_1.75rem_var(--shadow)] focus-visible:-translate-y-px focus-visible:shadow-[0_0.75rem_1.75rem_var(--shadow)] ${THEME_ACTION_COLOR_CLASSES[option.value]}`}
 			type="button"
 		>
 			<span>{option.label}</span>
-			<small>{option.value}</small>
+			<small className="text-xs font-bold text-[var(--on-surface-variant)]">
+				{option.value}
+			</small>
 		</button>
 	);
 }
@@ -115,136 +125,141 @@ const THEME_ACTION_BUTTONS = CATEGORY_COLOR_OPTIONS.map((option) => (
 	<ThemeActionButton key={option.value} option={option} />
 ));
 
-function HomeRecordRow({ record }: { record: HomeRecord }) {
-	return (
-		<tr>
-			<td>
+const CATEGORY_DOT_COLOR_CLASSES: Record<CategoryColor, string> = {
+	primary: "text-[var(--primary)]",
+	secondary: "text-[var(--secondary)]",
+	success: "text-[var(--secondary)]",
+	danger: "text-[var(--error)]",
+	warning: "text-[#b26a00]",
+	info: "text-[#006a6a]",
+	neutral: "text-[var(--outline)]",
+};
+
+const STATUS_CHIP_CLASSES: Record<HomeRecord["status"], string> = {
+	Scheduled:
+		"bg-[color-mix(in_srgb,var(--primary-container)_16%,transparent)] text-[var(--primary)]",
+	Paid: "bg-[color-mix(in_srgb,var(--secondary-container)_42%,transparent)] text-[var(--secondary)]",
+	Review: "bg-[color-mix(in_srgb,#f59e0b_18%,transparent)] text-[#b26a00]",
+	Overdue:
+		"bg-[color-mix(in_srgb,var(--error-container)_72%,transparent)] text-[var(--error)]",
+};
+
+const STATUS_LABELS: Record<HomeRecord["status"], string> = {
+	Scheduled: "Programado",
+	Paid: "Pagado",
+	Review: "Revisar",
+	Overdue: "Vencido",
+};
+
+export const HOME_PAYMENT_GRID_COLUMNS: ColumnDef<HomeRecord>[] = [
+	{
+		accessorKey: "merchant",
+		header: ({ column }) => (
+			<DataTableColumnHeader column={column} title="Comercio" />
+		),
+		cell: ({ row }) => (
+			<>
 				<span
-					className={`home-record-dot categories-color-${record.color}`}
+					className={`mr-2 inline-block size-[0.65rem] rounded-full bg-current shadow-[0_0_0_4px_color-mix(in_srgb,currentColor_16%,transparent)] ${CATEGORY_DOT_COLOR_CLASSES[row.original.color]}`}
 					aria-hidden="true"
 				/>
-				{record.merchant}
-			</td>
-			<td>{record.category}</td>
-			<td>{record.dueDate}</td>
-			<td>
-				<span className={`status-chip ${record.status.toLowerCase()}`}>
-					{record.status}
-				</span>
-			</td>
-			<td>{record.amount}</td>
-		</tr>
-	);
-}
+				{row.original.merchant}
+			</>
+		),
+	},
+	{
+		accessorKey: "category",
+		header: ({ column }) => (
+			<DataTableColumnHeader column={column} title="Categoría" />
+		),
+	},
+	{
+		accessorKey: "dueDate",
+		header: ({ column }) => (
+			<DataTableColumnHeader column={column} title="Vencimiento" />
+		),
+	},
+	{
+		accessorKey: "status",
+		header: ({ column }) => (
+			<DataTableColumnHeader column={column} title="Estado" />
+		),
+		cell: ({ row }) => (
+			<span
+				className={`rounded-full px-2.5 py-1 text-xs font-bold ${STATUS_CHIP_CLASSES[row.original.status]}`}
+			>
+				{STATUS_LABELS[row.original.status]}
+			</span>
+		),
+	},
+	{
+		accessorKey: "amount",
+		header: ({ column }) => (
+			<DataTableColumnHeader column={column} title="Importe" />
+		),
+	},
+];
 
-export function HomeDashboardView({
-	records,
-	page,
-	pageSize,
-	totalRecords,
-	totalPages,
-	onPageChange,
-	onPageSizeChange,
-}: HomeDashboardViewProps) {
-	const startRecord = totalRecords === 0 ? 0 : (page - 1) * pageSize + 1;
-	const endRecord = Math.min(page * pageSize, totalRecords);
-
+export function HomeDashboardView({ records }: HomeDashboardViewProps) {
 	return (
 		<section
-			className="dashboard-layout"
-			aria-label="Payment dashboard preview"
+			className="mx-auto grid max-w-[1200px] grid-cols-[minmax(0,0.85fr)_minmax(0,1.55fr)] gap-6 pb-12 max-[880px]:grid-cols-1"
+			aria-label="Vista previa del panel de pagos"
 		>
-			<article className="panel theme-actions-panel" id="administración">
-				<div className="panel-header">
+			<article
+				className="rounded-3xl border border-[var(--outline-variant)] bg-[var(--surface-container-lowest)] p-6"
+				id="administración"
+			>
+				<div className="mb-6 flex items-start justify-between gap-4 max-[560px]:grid max-[560px]:grid-cols-1">
 					<div>
-						<p className="card-label">Administración</p>
-						<h2>Acciones por tema</h2>
+						<p className="text-xs font-semibold leading-4 tracking-[0.08em] text-[var(--on-surface-variant)] uppercase">
+							Administración
+						</p>
+						<h2 className="mt-2 font-['Manrope',Inter,ui-sans-serif,system-ui,sans-serif] text-[clamp(1.5rem,3vw,2rem)] leading-[1.15] tracking-[-0.02em]">
+							Acciones por tema
+						</h2>
 					</div>
-					<a className="secondary-action" href="#payment-grid">
+					<a
+						className="inline-flex items-center justify-center rounded-full border border-[var(--outline-variant)] bg-transparent px-4 py-3 font-semibold text-[var(--on-surface)] transition-colors duration-150 hover:border-[var(--primary)] focus-visible:border-[var(--primary)] max-[560px]:w-full"
+						href="#payment-grid"
+					>
 						Ver grilla
 					</a>
 				</div>
 
-				<form className="theme-actions-form" aria-label="Theme color actions">
+				<form
+					className="grid grid-cols-[repeat(auto-fit,minmax(8.5rem,1fr))] gap-3 max-[560px]:grid-cols-1"
+					aria-label="Acciones de color del tema"
+				>
 					{THEME_ACTION_BUTTONS}
 				</form>
 			</article>
 
-			<article className="panel grid-panel" id="payment-grid">
-				<div className="panel-header grid-panel-header">
-					<div>
-						<p className="card-label">Mock data grid</p>
-						<h2>Pagos del hogar</h2>
-					</div>
-					<label className="page-size-control">
-						<span>Filas por página</span>
-						<select
-							aria-label="Rows per page"
-							value={pageSize}
-							onChange={(event) => {
-								onPageSizeChange(Number(event.target.value));
-							}}
-						>
-							{PAGE_SIZE_OPTIONS.map((option) => (
-								<option key={option} value={option}>
-									{option}
-								</option>
-							))}
-						</select>
-					</label>
-				</div>
+			<DataTable
+				id="payment-grid"
+				eyebrow="Grilla de pagos"
+				title="Pagos del hogar"
+				data={records}
+				columns={HOME_PAYMENT_GRID_COLUMNS}
+				getRowId={(record) => record.id}
+				searchColumnIds={["merchant", "category", "dueDate", "status", "amount"]}
+				getSearchableRowValues={(record) => [STATUS_LABELS[record.status]]}
+				searchPlaceholder="Buscar pagos..."
+				totalSummary={(total) => `${total} registros`}
+				paginationLabel="Paginación de la grilla de pagos"
+			/>
 
-				<div className="home-table-wrap">
-					<table className="home-table">
-						<caption>
-							Showing {startRecord}-{endRecord} of {totalRecords} mock records
-						</caption>
-						<thead>
-							<tr>
-								<th scope="col">Merchant</th>
-								<th scope="col">Category</th>
-								<th scope="col">Due date</th>
-								<th scope="col">Status</th>
-								<th scope="col">Amount</th>
-							</tr>
-						</thead>
-						<tbody>
-							{records.map((record) => (
-								<HomeRecordRow key={record.id} record={record} />
-							))}
-						</tbody>
-					</table>
-				</div>
-
-				<nav className="home-pagination" aria-label="Payment grid pagination">
-					<button
-						disabled={page <= 1}
-						type="button"
-						onClick={() => {
-							onPageChange(page - 1);
-						}}
-					>
-						Anterior
-					</button>
-					<span>
-						Página {page} de {totalPages}
-					</span>
-					<button
-						disabled={page >= totalPages}
-						type="button"
-						onClick={() => {
-							onPageChange(page + 1);
-						}}
-					>
-						Siguiente
-					</button>
-				</nav>
-			</article>
-
-			<article className="panel contact-panel" id="contacto">
-				<p className="card-label">Contacto</p>
-				<h2>Base lista para crecer</h2>
-				<p>
+			<article
+				className="flex flex-col gap-4 rounded-3xl border border-[var(--outline-variant)] bg-[var(--surface-container-lowest)] p-6"
+				id="contacto"
+			>
+				<p className="text-xs leading-4 font-semibold tracking-[0.08em] text-[var(--on-surface-variant)] uppercase">
+					Contacto
+				</p>
+				<h2 className="mt-2 font-['Manrope',Inter,ui-sans-serif,system-ui,sans-serif] text-[clamp(1.5rem,3vw,2rem)] leading-[1.15] tracking-[-0.02em]">
+					Base lista para crecer
+				</h2>
+				<p className="leading-normal text-[var(--on-surface-variant)]">
 					La estructura combina acciones temáticas, una grilla realista y
 					controles de paginación para incorporar próximos módulos sin
 					reescribir el layout.
@@ -255,27 +270,5 @@ export function HomeDashboardView({
 }
 
 export default function HomeDashboard() {
-	const [pageSize, setPageSize] = useState<number>(PAGE_SIZE_OPTIONS[0]);
-	const [page, setPage] = useState(1);
-	const pagination = useMemo(
-		() => getPaginatedHomeRecords(MOCK_HOME_RECORDS, page, pageSize),
-		[page, pageSize],
-	);
-
-	function handlePageSizeChange(nextPageSize: number) {
-		setPageSize(nextPageSize);
-		setPage(1);
-	}
-
-	return (
-		<HomeDashboardView
-			records={pagination.records}
-			page={pagination.page}
-			pageSize={pageSize}
-			totalRecords={MOCK_HOME_RECORDS.length}
-			totalPages={pagination.totalPages}
-			onPageChange={setPage}
-			onPageSizeChange={handlePageSizeChange}
-		/>
-	);
+	return <HomeDashboardView records={MOCK_HOME_RECORDS} />;
 }

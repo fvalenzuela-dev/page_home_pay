@@ -7,6 +7,12 @@ vi.mock("@clerk/nextjs", () => ({
 	),
 }));
 
+vi.mock("next-themes", () => ({
+	ThemeProvider: ({ children }: { children: ReactNode }) => (
+		<section data-testid="theme-provider">{children}</section>
+	),
+}));
+
 type ElementProps = Record<string, unknown> & {
 	children?: ReactNode;
 };
@@ -43,12 +49,19 @@ describe("RootLayout", () => {
 
 		expect(documentElement.type).toBe("html");
 		expect(documentElement.props.lang).toBe("en");
+		expect(documentElement.props.suppressHydrationWarning).toBe(true);
 		expect(isValidElement<ElementProps>(bodyElement)).toBe(true);
 		if (!isValidElement<ElementProps>(bodyElement)) {
 			throw new Error("RootLayout did not render a body element");
 		}
 
 		expect(bodyElement.type).toBe("body");
-		expect(bodyElement.props.children).toBe(child);
+		const providersElement = bodyElement.props.children;
+		expect(isValidElement<ElementProps>(providersElement)).toBe(true);
+		if (!isValidElement<ElementProps>(providersElement)) {
+			throw new Error("RootLayout did not render app providers");
+		}
+
+		expect(providersElement.props.children).toBe(child);
 	});
 });

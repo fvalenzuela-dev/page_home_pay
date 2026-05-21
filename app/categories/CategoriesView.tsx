@@ -1,6 +1,6 @@
 import type { Dispatch, FormEventHandler } from "react";
 
-import AppHeader from "../AppHeader";
+import AppHeader from "../components/layout/AppHeader";
 import {
 	CATEGORY_COLOR_OPTIONS,
 	CATEGORY_ICON_OPTIONS,
