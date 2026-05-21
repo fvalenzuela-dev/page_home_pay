@@ -1,6 +1,6 @@
 # Page Home Pay
 
-Next.js 16 application for home payment management.
+Next.js 16 application for home payment management
 
 ## Local setup
 
