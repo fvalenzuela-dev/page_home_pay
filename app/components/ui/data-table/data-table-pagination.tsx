@@ -1,4 +1,4 @@
-import { type Table } from "@tanstack/react-table";
+import type { Table } from "@tanstack/react-table";
 
 export const PAGE_SIZE_OPTIONS = [10, 25, 50] as const;
 

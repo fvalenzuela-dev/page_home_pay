@@ -3,6 +3,10 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 import Button from "./Button";
 
+function hasOpeningTag(markup: string, tagName: string) {
+	return new RegExp(`<${tagName}\\b`, "i").test(markup);
+}
+
 describe("Button", () => {
 	it("renders a primary button by default", () => {
 		const markup = renderToStaticMarkup(<Button>Ingresar</Button>);
@@ -34,7 +38,7 @@ describe("Button", () => {
 		);
 
 		expect(markup).toContain('href="/sign-in"');
-		expect(markup).not.toContain("<button");
+		expect(hasOpeningTag(markup, "button")).toBe(false);
 		expect(markup).toContain("hover:underline");
 	});
 });

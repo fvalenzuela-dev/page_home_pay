@@ -8,9 +8,8 @@ import {
 	getSortedRowModel,
 	useReactTable,
 	type ColumnDef,
-	type FilterFn,
-	type Row,
 	type SortingState,
+	type Table,
 } from "@tanstack/react-table";
 import { useState, type Key, type ReactNode } from "react";
 import { DataTablePagination, PAGE_SIZE_OPTIONS } from "./data-table-pagination";
@@ -20,22 +19,38 @@ export { DataTableColumnHeader } from "./data-table-column-header";
 export { PAGE_SIZE_OPTIONS } from "./data-table-pagination";
 export type { ColumnDef } from "@tanstack/react-table";
 
+type RowIdGetter<TData> = (record: TData) => Key;
+type SearchableValuesGetter<TData> = (record: TData) => unknown[];
+type TotalSummaryRenderer = (count: number) => ReactNode;
+
+interface GlobalFilterRow<TData> {
+	original: TData;
+	getValue: (columnId: string) => unknown;
+	getAllCells: () => { getValue: () => unknown }[];
+}
+
 interface DataTableProps<TData, TValue> {
 	id?: string;
 	eyebrow: ReactNode;
 	title: ReactNode;
 	data: TData[];
 	columns: ColumnDef<TData, TValue>[];
-	getRowId?: (row: TData) => Key;
+	getRowId?: RowIdGetter<TData>;
 	searchPlaceholder?: string;
 	searchColumnIds?: string[];
-	getSearchableRowValues?: (row: TData) => unknown[];
+	getSearchableRowValues?: SearchableValuesGetter<TData>;
 	filters?: ReactNode;
 	initialPageSize?: number;
 	pageSizeOptions?: readonly number[];
-	totalSummary?: (totalRows: number) => ReactNode;
+	totalSummary?: TotalSummaryRenderer;
 	paginationLabel?: string;
 	emptyMessage?: ReactNode;
+}
+
+interface DataTableMarkupProps<TData> {
+	table: Table<TData>;
+	columnsLength: number;
+	emptyMessage: ReactNode;
 }
 
 const tableHeaderCellClassName =
@@ -57,9 +72,15 @@ function stringifyCellValue(value: unknown) {
 
 export function createGlobalFilter<TData>(
 	columnIds?: string[],
-	getSearchableRowValues?: (row: TData) => unknown[],
-): FilterFn<TData> {
-	return (row: Row<TData>, _columnId: string, filterValue: unknown) => {
+	getSearchableRowValues?: SearchableValuesGetter<TData>,
+) {
+	return (
+		row: GlobalFilterRow<TData>,
+		_columnId: string,
+		filterValue: unknown,
+		addMeta?: unknown,
+	) => {
+		void addMeta;
 		const query = String(filterValue ?? "").trim().toLowerCase();
 
 		if (!query) {
@@ -80,23 +101,70 @@ export function createGlobalFilter<TData>(
 	};
 }
 
-export function DataTable<TData, TValue>({
-	id,
-	eyebrow,
-	title,
-	data,
-	columns,
-	getRowId,
-	searchPlaceholder,
-	searchColumnIds,
-	getSearchableRowValues,
-	filters,
-	initialPageSize = PAGE_SIZE_OPTIONS[0],
-	pageSizeOptions = PAGE_SIZE_OPTIONS,
-	totalSummary = (total) => `Total: ${total} registros`,
-	paginationLabel = "Paginación de la tabla",
-	emptyMessage = "No se encontraron registros.",
-}: DataTableProps<TData, TValue>) {
+function DataTableHeader<TData>({ table }: Pick<DataTableMarkupProps<TData>, "table">) {
+	return table.getHeaderGroups().map((headerGroup) => (
+		<tr key={headerGroup.id}>
+			{headerGroup.headers.map((header) => (
+				<th className={tableHeaderCellClassName} key={header.id} scope="col">
+					{header.isPlaceholder
+						? null
+						: flexRender(header.column.columnDef.header, header.getContext())}
+				</th>
+			))}
+		</tr>
+	));
+}
+
+function DataTableBody<TData>({
+	table,
+	columnsLength,
+	emptyMessage,
+}: DataTableMarkupProps<TData>) {
+	const visibleRows = table.getRowModel().rows;
+
+	if (visibleRows.length === 0) {
+		return (
+			<tr className="group/row">
+				<td className={tableCellClassName} colSpan={columnsLength}>
+					{emptyMessage}
+				</td>
+			</tr>
+		);
+	}
+
+	return visibleRows.map((row) => (
+		<tr
+			className={tableRowClassName}
+			data-state={row.getIsSelected() ? "selected" : undefined}
+			key={row.id}
+		>
+			{row.getVisibleCells().map((cell) => (
+				<td className={tableCellClassName} key={cell.id}>
+					{flexRender(cell.column.columnDef.cell, cell.getContext())}
+				</td>
+			))}
+		</tr>
+	));
+}
+
+export function DataTable<TData, TValue>(props: DataTableProps<TData, TValue>) {
+	const {
+		id,
+		eyebrow,
+		title,
+		data,
+		columns,
+		getRowId,
+		searchPlaceholder,
+		searchColumnIds,
+		getSearchableRowValues,
+		filters,
+		initialPageSize = PAGE_SIZE_OPTIONS[0],
+		pageSizeOptions = PAGE_SIZE_OPTIONS,
+		totalSummary = (total) => `Total: ${total} registros`,
+		paginationLabel = "Paginación de la tabla",
+		emptyMessage = "No se encontraron registros.",
+	} = props;
 	const [sorting, setSorting] = useState<SortingState>([]);
 	const [globalFilter, setGlobalFilter] = useState("");
 	// eslint-disable-next-line react-hooks/incompatible-library -- TanStack Table owns internal table functions for this reusable client component.
@@ -122,7 +190,6 @@ export function DataTable<TData, TValue>({
 		getPaginationRowModel: getPaginationRowModel(),
 	});
 	const filteredRows = table.getFilteredRowModel().rows.length;
-	const visibleRows = table.getRowModel().rows;
 
 	function handleGlobalFilterChange(value: string) {
 		setGlobalFilter(value);
@@ -156,50 +223,14 @@ export function DataTable<TData, TValue>({
 			<div className="overflow-x-auto rounded-2xl border border-[var(--outline-variant)]">
 				<table className="w-full min-w-[680px] border-collapse">
 					<thead>
-						{table.getHeaderGroups().map((headerGroup) => (
-							<tr key={headerGroup.id}>
-								{headerGroup.headers.map((header) => (
-									<th
-										className={tableHeaderCellClassName}
-										key={header.id}
-										scope="col"
-									>
-										{header.isPlaceholder
-											? null
-											: flexRender(
-												header.column.columnDef.header,
-												header.getContext(),
-											)}
-									</th>
-								))}
-							</tr>
-						))}
+						<DataTableHeader table={table} />
 					</thead>
 					<tbody>
-						{visibleRows.length > 0 ? (
-							visibleRows.map((row) => (
-								<tr
-									className={tableRowClassName}
-									data-state={row.getIsSelected() ? "selected" : undefined}
-									key={row.id}
-								>
-									{row.getVisibleCells().map((cell) => (
-										<td className={tableCellClassName} key={cell.id}>
-											{flexRender(
-												cell.column.columnDef.cell,
-												cell.getContext(),
-											)}
-										</td>
-									))}
-								</tr>
-							))
-						) : (
-							<tr className="group/row">
-								<td className={tableCellClassName} colSpan={columns.length}>
-									{emptyMessage}
-								</td>
-							</tr>
-						)}
+						<DataTableBody
+							columnsLength={columns.length}
+							emptyMessage={emptyMessage}
+							table={table}
+						/>
 					</tbody>
 				</table>
 			</div>

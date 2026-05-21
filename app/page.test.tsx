@@ -49,6 +49,26 @@ async function renderHomeHeaderMarkup() {
 	return renderToStaticMarkup(<AppHeader />);
 }
 
+function getFirstTag(markup: string, tagName: string) {
+	return markup.match(new RegExp(`<${tagName}\\b[^>]*>`, "i"))?.[0] ?? "";
+}
+
+function hasTagWithAttribute(
+	markup: string,
+	tagName: string,
+	attributeName: string,
+	attributeValue: string,
+) {
+	return new RegExp(
+		`<${tagName}\\b[^>]*\\s${attributeName}="${attributeValue}"`,
+		"i",
+	).test(markup);
+}
+
+function getClassNameFromTag(tagMarkup: string) {
+	return tagMarkup.match(/\sclass="([^"]*)"/i)?.[1] ?? "";
+}
+
 function asElement(node: ReactNode): ReactElement<ElementProps> {
 	if (!isValidElement<ElementProps>(node)) {
 		throw new Error("Expected a React element");
@@ -112,17 +132,33 @@ describe("HomePage", () => {
 
 	it("includes theme controls", async () => {
 		const markup = await renderHomeHeaderMarkup();
+		const fieldsetClassName = getClassNameFromTag(getFirstTag(markup, "fieldset"));
+		const legendClassName = getClassNameFromTag(getFirstTag(markup, "legend"));
+		const labelClassName = getClassNameFromTag(
+			getFirstTag(markup, "label"),
+		);
 
-		expect(markup).toContain("<fieldset");
-		expect(markup).toContain("flex min-w-0");
-		expect(markup).toContain('<legend class="sr-only">');
+		expect(fieldsetClassName).toContain("flex min-w-0");
+		expect(legendClassName).toBe("sr-only");
 		expect(markup).toContain("Logged-in user management");
-		expect(markup).toContain("<label");
-		expect(markup).toContain("relative inline-grid");
-		expect(markup).toContain('for="theme-switch"');
-		expect(markup).toContain('id="theme-switch"');
-		expect(markup).toContain('type="checkbox"');
-		expect(markup).toContain('aria-label="Toggle dark and light theme"');
+		expect(labelClassName).toContain("relative inline-grid");
+		expect(hasTagWithAttribute(markup, "label", "for", "theme-switch")).toBe(
+			true,
+		);
+		expect(hasTagWithAttribute(markup, "input", "id", "theme-switch")).toBe(
+			true,
+		);
+		expect(hasTagWithAttribute(markup, "input", "type", "checkbox")).toBe(
+			true,
+		);
+		expect(
+			hasTagWithAttribute(
+				markup,
+				"input",
+				"aria-label",
+				"Toggle dark and light theme",
+			),
+		).toBe(true);
 		expect(markup).toContain("☀");
 		expect(markup).toContain("☾");
 	});
@@ -139,14 +175,17 @@ describe("HomePage", () => {
 	it("links navigation items and administration submenu", async () => {
 		const main = await renderHomePageElement();
 		const markup = await renderHomeHeaderMarkup();
+		const detailsClassName = getClassNameFromTag(getFirstTag(markup, "details"));
 		const hero = asElement(Children.toArray(main.props.children)[1]);
 
-		expect(markup).toContain('href="#dashboard"');
-		expect(markup).toContain('href="#contacto"');
-		expect(markup).toContain('<details class="group relative');
+		expect(hasTagWithAttribute(markup, "a", "href", "#dashboard")).toBe(true);
+		expect(hasTagWithAttribute(markup, "a", "href", "#contacto")).toBe(true);
+		expect(detailsClassName).toContain("group relative");
 		expect(markup).toContain("Administración");
-		expect(markup).toContain('href="#administración"');
-		expect(markup).toContain('href="/categories"');
+		expect(hasTagWithAttribute(markup, "a", "href", "#administración")).toBe(
+			true,
+		);
+		expect(hasTagWithAttribute(markup, "a", "href", "/categories")).toBe(true);
 		expect(markup).toContain("Categorías");
 		requireId(hero, "dashboard");
 	});
@@ -218,15 +257,16 @@ describe("HomePage", () => {
 		const filter = createGlobalFilter<HomeRecord>(["status"], (record) => [
 			record.status === "Scheduled" ? "Programado" : record.status,
 		]);
+		const addMeta = vi.fn();
 		const row = {
 			original: MOCK_HOME_RECORDS[0],
 			getValue: () => "Scheduled",
 			getAllCells: () => [],
-		} as unknown as Parameters<typeof filter>[0];
+		};
 
-		expect(filter(row, "", "programado", () => {})).toBe(true);
-		expect(filter(row, "", "scheduled", () => {})).toBe(true);
-		expect(filter(row, "", "pagado", () => {})).toBe(false);
+		expect(filter(row, "", "programado", addMeta)).toBe(true);
+		expect(filter(row, "", "scheduled", addMeta)).toBe(true);
+		expect(filter(row, "", "pagado", addMeta)).toBe(false);
 	});
 
 	it("renders the client dashboard with default pagination state", () => {
