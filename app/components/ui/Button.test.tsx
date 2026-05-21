@@ -3,30 +3,6 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 import Button from "./Button";
 
-function hasOpeningTag(markup: string, tagName: string) {
-	const tagPrefix = `<${tagName.toLowerCase()}`;
-	const lowerMarkup = markup.toLowerCase();
-	let searchIndex = 0;
-
-	while (searchIndex < markup.length) {
-		const tagStart = lowerMarkup.indexOf(tagPrefix, searchIndex);
-
-		if (tagStart === -1) {
-			return false;
-		}
-
-		const tagNameEnd = tagStart + tagPrefix.length;
-		const nextCharacter = markup[tagNameEnd];
-		if (nextCharacter === undefined || nextCharacter === ">" || /\s/.test(nextCharacter)) {
-			return true;
-		}
-
-		searchIndex = tagNameEnd;
-	}
-
-	return false;
-}
-
 describe("Button", () => {
 	it("renders a primary button by default", () => {
 		const markup = renderToStaticMarkup(<Button>Ingresar</Button>);
@@ -58,7 +34,7 @@ describe("Button", () => {
 		);
 
 		expect(markup).toContain('href="/sign-in"');
-		expect(hasOpeningTag(markup, "button")).toBe(false);
+		expect(markup).not.toMatch(/<button(?:\s|>)/i);
 		expect(markup).toContain("hover:underline");
 	});
 });

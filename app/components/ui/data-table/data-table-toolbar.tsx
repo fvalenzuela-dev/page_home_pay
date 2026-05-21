@@ -2,7 +2,7 @@ import type { ReactNode } from "react";
 
 interface DataTableToolbarProps {
 	globalFilter: string;
-	onGlobalFilterChange: (value: string) => void;
+	onGlobalFilterChange(value: string): void;
 	searchPlaceholder?: string;
 	filters?: ReactNode;
 	totalSummary?: ReactNode;
