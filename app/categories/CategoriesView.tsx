@@ -67,6 +67,8 @@ const successMessageClassName =
 	"rounded-2xl border border-[color-mix(in_srgb,var(--secondary)_35%,transparent)] bg-[color-mix(in_srgb,var(--secondary-container)_42%,transparent)] p-4 text-sm font-semibold text-[var(--secondary)]";
 const iconPreviewBaseClassName =
 	"inline-grid size-11 place-items-center rounded-2xl bg-[color-mix(in_srgb,currentColor_14%,var(--surface-container-lowest))] text-xl shadow-[inset_0_0_0_1px_color-mix(in_srgb,currentColor_28%,transparent)]";
+const iconOptionPreviewClassName =
+	"inline-grid size-11 place-items-center rounded-2xl bg-[color-mix(in_srgb,currentColor_14%,var(--surface-container-lowest))] text-xl";
 const rowActionsClassName = "flex justify-end gap-2";
 const modalBackdropClassName =
 	"fixed inset-0 z-30 grid place-items-center bg-slate-950/55 p-4 backdrop-blur-sm";
@@ -289,7 +291,7 @@ function IconOptions(
 						/>
 						<span
 							className={cn(
-								iconPreviewBaseClassName,
+								iconOptionPreviewClassName,
 								getCategoryColorClassName(
 									props.state.editDraft?.colorWeb ?? "success",
 								),
