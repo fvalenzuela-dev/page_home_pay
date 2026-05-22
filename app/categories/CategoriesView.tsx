@@ -2,6 +2,7 @@ import type { Dispatch, FormEventHandler } from "react";
 
 import AppHeader from "../components/layout/AppHeader";
 import Button from "../components/ui/Button";
+import IconActionButton from "../components/ui/IconActionButton";
 import {
 	DataTable,
 	DataTableColumnHeader,
@@ -151,28 +152,22 @@ function createCategoryColumns(
 			enableSorting: false,
 			cell: ({ row }) => (
 				<div className={rowActionsClassName}>
-					<Button
-						className="rounded-full"
-						variant="outline"
-						size="icon"
+					<IconActionButton
+						icon="✎"
+						variant="neutral"
 						aria-label={`Editar ${row.original.name}`}
 						onClick={() => {
 							onOpenEdit(row.original.id);
 						}}
-					>
-						<span aria-hidden="true">✎</span>
-					</Button>
-					<Button
-						className="rounded-full"
-						variant="danger"
-						size="icon"
+					/>
+					<IconActionButton
+						icon="🗑"
+						variant="danger-soft"
 						aria-label={`Eliminar ${row.original.name}`}
 						onClick={() => {
 							onOpenDelete(row.original.id);
 						}}
-					>
-						<span aria-hidden="true">🗑</span>
-					</Button>
+					/>
 				</div>
 			),
 		},
