@@ -32,6 +32,22 @@ describe("IconActionButton", () => {
 		expect(markup).toContain("focus-visible:outline-destructive");
 	});
 
+	it("supports primary-soft with a soft primary background and accessible focus outline", () => {
+		const markup = renderToStaticMarkup(
+			<IconActionButton
+				aria-label="Editar categoría"
+				icon="✎"
+				variant="primary-soft"
+			/>,
+		);
+
+		expect(markup).toContain("bg-primary/15");
+		expect(markup).toContain("border-primary/40");
+		expect(markup).toContain("text-primary");
+		expect(markup).toContain("hover:bg-primary/25");
+		expect(markup).toContain("focus-visible:outline-ring");
+	});
+
 	it("passes through standard button props", () => {
 		const markup = renderToStaticMarkup(
 			<IconActionButton

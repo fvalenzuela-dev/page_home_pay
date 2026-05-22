@@ -160,6 +160,9 @@ describe("CategoriesScreen", () => {
 		requireMarkup(populated, "Agregar categoría");
 		requireMarkup(populated, "Editar Luz");
 		requireMarkup(populated, "Eliminar Luz");
+		requireMarkup(populated, "bg-primary/15");
+		requireMarkup(populated, "border-primary/40");
+		requireMarkup(populated, "hover:bg-primary/25");
 		requireMarkup(populated, "bg-destructive/40");
 		requireMarkup(populated, "focus-visible:outline-destructive");
 		requireMarkup(populated, "Filas por página");

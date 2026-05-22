@@ -154,7 +154,7 @@ function createCategoryColumns(
 				<div className={rowActionsClassName}>
 					<IconActionButton
 						icon="✎"
-						variant="neutral"
+						variant="primary-soft"
 						aria-label={`Editar ${row.original.name}`}
 						onClick={() => {
 							onOpenEdit(row.original.id);
