@@ -61,7 +61,7 @@ function collectElements(node: ReactNode): ReactElement<ElementProps>[] {
 		return [];
 	}
 
-	if (typeof node.type === "function") {
+	if (typeof node.type === "function" && node.type.name !== "DataTable") {
 		return collectElements(
 			Reflect.apply(node.type, undefined, [node.props]) as ReactNode,
 		);
@@ -156,16 +156,67 @@ describe("CategoriesScreen", () => {
 		requireMarkup(populated, "⚡");
 		requireMarkup(populated, "Sin icono");
 		requireMarkup(populated, "✓");
-		requireMarkup(populated, "categories-color-success");
+		requireMarkup(populated, "categories-color-primary");
 		requireMarkup(populated, "Agregar categoría");
 		requireMarkup(populated, "Editar Luz");
 		requireMarkup(populated, "Eliminar Luz");
+		requireMarkup(populated, "bg-transparent");
+		requireMarkup(populated, "border-transparent");
+		requireMarkup(populated, "text-primary");
+		requireMarkup(populated, "hover:bg-primary/10");
+		requireMarkup(populated, "text-destructive");
+		requireMarkup(populated, "hover:bg-destructive/10");
+		requireMarkup(populated, "focus-visible:outline-destructive");
+		requireMarkup(populated, 'stroke="currentColor"');
+		requireMarkup(populated, 'fill="none"');
+		requireMarkup(populated, "Filas por página");
+		requireMarkup(populated, 'value="10"');
+		requireMarkup(populated, 'value="20"');
+		requireMarkup(populated, 'value="25"');
+		requireMarkup(populated, 'value="50"');
 		expect(populated).not.toContain(">Editar<");
 		expect(populated).not.toContain(">Eliminar<");
 		requireMarkup(populated, "Página 1 de 2");
 		expect(populated).not.toContain("Icono APK");
 		expect(populated).not.toContain("Color APK");
 		expect(populated).not.toContain("Primary");
+	});
+
+	it("renders legacy API colors with mapped theme token classes", async () => {
+		const { default: CategoriesScreen } = await loadScreen();
+		const markup = renderToStaticMarkup(
+			<CategoriesScreen
+				autoLoad={false}
+				initialState={{
+					status: "success",
+					categories: [
+						{
+							id: 6,
+							name: "Agua",
+							colorApk: "success",
+							colorWeb: "success",
+							iconApk: "water",
+							iconWeb: "water",
+						},
+						{
+							id: 7,
+							name: "Internet",
+							colorApk: "info",
+							colorWeb: "info",
+							iconApk: "internet",
+							iconWeb: "internet",
+						},
+					],
+				}}
+			/>,
+		);
+
+		requireMarkup(markup, "Agua");
+		requireMarkup(markup, "categories-color-success");
+		requireMarkup(markup, "text-secondary");
+		requireMarkup(markup, "Internet");
+		requireMarkup(markup, "categories-color-info");
+		requireMarkup(markup, "text-primary");
 	});
 
 	it("opens create modal with default visual options", async () => {
@@ -177,7 +228,13 @@ describe("CategoriesScreen", () => {
 
 		requireMarkup(markup, "Agregar categoría");
 		requireMarkup(markup, "Crear categoría");
-		requireMarkup(markup, "categories-color-success");
+		requireMarkup(markup, "bg-warning");
+		requireMarkup(markup, "categories-color-primary");
+		requireMarkup(markup, "text-primary");
+		requireMarkup(markup, "text-secondary");
+		requireMarkup(markup, "text-warning");
+		requireMarkup(markup, "text-destructive");
+		requireMarkup(markup, "text-border");
 		requireMarkup(markup, 'value="home"');
 		expect(markup).not.toContain("Icono APK");
 	});
@@ -207,6 +264,7 @@ describe("CategoriesScreen", () => {
 		requireMarkup(markup, 'role="dialog"');
 		requireMarkup(markup, "Editar categoría");
 		requireMarkup(markup, 'value="Gas"');
+		requireMarkup(markup, "bg-warning");
 		requireMarkup(markup, 'name="icon_web"');
 		requireMarkup(markup, 'value="gas"');
 		requireMarkup(markup, "🔥");
@@ -298,6 +356,7 @@ describe("CategoriesScreen", () => {
 		);
 
 		requireMarkup(markup, "¿Eliminar Seguro?");
+		requireMarkup(markup, "bg-warning");
 		requireMarkup(markup, "Sí, eliminar");
 	});
 
@@ -327,6 +386,7 @@ describe("CategoriesScreen", () => {
 		const handlers = {
 			onPreviousPage: vi.fn(),
 			onNextPage: vi.fn(),
+			onPageSizeChange: vi.fn(),
 			onOpenCreate: vi.fn(),
 			onOpenEdit: vi.fn(),
 			onOpenDelete: vi.fn(),
@@ -339,24 +399,66 @@ describe("CategoriesScreen", () => {
 		const view = CategoriesView({ state, ...handlers });
 		const elements = collectElements(view);
 		const buttons = elements.filter((element) => element.type === "button");
+		const dataTable = asElement(
+			elements.find((element) => element.props.id === "categories-grid"),
+		);
+		const columns = dataTable.props.columns as {
+			id?: string;
+			cell?: (..._args: [{ row: { original: (typeof baseState.categories)[number] } }]) =>
+				ReactNode;
+		}[];
+		const actionsColumn = columns.find((column) => column.id === "actions");
+		const actionButtons = collectElements(
+			actionsColumn?.cell?.({ row: { original: baseState.categories[0] } }),
+		).filter((element) => element.type === "button");
 
-		for (const label of [
-			"Agregar categoría",
-			"Anterior",
-			"Siguiente",
-			"Sí, eliminar",
-		]) {
+		for (const label of ["Agregar categoría", "Sí, eliminar"]) {
 			const button = buttons.find((candidate) =>
 				textFrom(candidate.props.children).includes(label),
 			);
 			callHandler(asElement(button).props.onClick);
 		}
+		callHandler(
+			(dataTable.props.serverPagination as { onPreviousPage: () => void })
+				.onPreviousPage,
+		);
+		callHandler(
+			(dataTable.props.serverPagination as { onNextPage: () => void }).onNextPage,
+		);
+		callHandler(
+			(
+				dataTable.props.serverPagination as {
+					onPageSizeChange: (_pageSize: number) => void;
+				}
+			).onPageSizeChange,
+			10,
+		);
 		for (const ariaLabel of ["Editar Luz", "Eliminar Luz"]) {
-			const button = buttons.find(
+			const button = actionButtons.find(
 				(candidate) => candidate.props["aria-label"] === ariaLabel,
 			);
 			callHandler(asElement(button).props.onClick);
 		}
+		expect(
+			actionButtons.find(
+				(candidate) => candidate.props["aria-label"] === "Editar Luz",
+			)?.props.className,
+		).toContain("text-primary");
+		expect(
+			actionButtons.find(
+				(candidate) => candidate.props["aria-label"] === "Editar Luz",
+			)?.props.className,
+		).toContain("bg-transparent");
+		expect(
+			actionButtons.find(
+				(candidate) => candidate.props["aria-label"] === "Eliminar Luz",
+			)?.props.className,
+		).toContain("text-destructive");
+		expect(
+			actionButtons.find(
+				(candidate) => candidate.props["aria-label"] === "Eliminar Luz",
+			)?.props.className,
+		).toContain("bg-transparent");
 		for (const button of buttons.filter((candidate) =>
 			textFrom(candidate.props.children).includes("Cancelar"),
 		)) {
@@ -376,6 +478,7 @@ describe("CategoriesScreen", () => {
 		expect(handlers.onOpenDelete).toHaveBeenCalledWith(1);
 		expect(handlers.onPreviousPage).toHaveBeenCalledOnce();
 		expect(handlers.onNextPage).toHaveBeenCalledOnce();
+		expect(handlers.onPageSizeChange).toHaveBeenCalledWith(10);
 		expect(handlers.onSubmitEdit).toHaveBeenCalledOnce();
 		expect(handlers.onUpdateDraftField).toHaveBeenCalledTimes(3);
 		expect(handlers.onConfirmDelete).toHaveBeenCalledOnce();
@@ -412,7 +515,7 @@ describe("CategoriesScreen", () => {
 		).toEqual(
 			expect.objectContaining({
 				id: null,
-				colorWeb: "success",
+				colorWeb: "primary",
 				iconWeb: "home",
 			}),
 		);

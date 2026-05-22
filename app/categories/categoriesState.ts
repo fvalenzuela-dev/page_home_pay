@@ -85,8 +85,8 @@ export function openCreateModal(
 		editDraft: {
 			id: null,
 			name: "",
-			colorApk: "success",
-			colorWeb: "success",
+			colorApk: "primary",
+			colorWeb: "primary",
 			iconApk: "home",
 			iconWeb: "home",
 		},
@@ -174,6 +174,6 @@ export function getCategoryIconDisplay(category: Category) {
 	const glyph = getCategoryIconGlyph(category.iconWeb);
 	return {
 		glyph: glyph === "•" ? "✓" : glyph,
-		color: glyph === "•" ? "success" : category.colorWeb,
+		color: glyph === "•" ? "primary" : category.colorWeb,
 	};
 }

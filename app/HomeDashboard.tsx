@@ -94,13 +94,13 @@ export function getPaginatedHomeRecords(
 }
 
 const THEME_ACTION_COLOR_CLASSES: Record<CategoryColor, string> = {
-	primary: "text-[var(--primary)]",
-	secondary: "text-[var(--secondary)]",
-	success: "text-[var(--secondary)]",
-	danger: "text-[var(--error)]",
-	warning: "text-[#b26a00]",
-	info: "text-[#006a6a]",
-	neutral: "text-[var(--outline)]",
+	primary: "text-primary",
+	secondary: "text-secondary",
+	success: "text-secondary",
+	danger: "text-destructive",
+	warning: "text-warning",
+	info: "text-primary",
+	neutral: "text-border",
 };
 
 function ThemeActionButton({
@@ -126,13 +126,13 @@ const THEME_ACTION_BUTTONS = CATEGORY_COLOR_OPTIONS.map((option) => (
 ));
 
 const CATEGORY_DOT_COLOR_CLASSES: Record<CategoryColor, string> = {
-	primary: "text-[var(--primary)]",
-	secondary: "text-[var(--secondary)]",
-	success: "text-[var(--secondary)]",
-	danger: "text-[var(--error)]",
-	warning: "text-[#b26a00]",
-	info: "text-[#006a6a]",
-	neutral: "text-[var(--outline)]",
+	primary: "text-primary",
+	secondary: "text-secondary",
+	success: "text-secondary",
+	danger: "text-destructive",
+	warning: "text-warning",
+	info: "text-primary",
+	neutral: "text-border",
 };
 
 const STATUS_CHIP_CLASSES: Record<HomeRecord["status"], string> = {

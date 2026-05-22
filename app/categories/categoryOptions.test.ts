@@ -34,13 +34,12 @@ describe("categoryOptions", () => {
 		expect(CATEGORY_COLOR_OPTIONS.map((option) => option.value)).toEqual([
 			"primary",
 			"secondary",
-			"success",
-			"danger",
 			"warning",
-			"info",
+			"danger",
 			"neutral",
 		]);
-		expect(getCategoryColorLabel("neutral")).toBe("Neutral/default");
+		expect(getCategoryColorLabel("danger")).toBe("Destructive");
+		expect(getCategoryColorLabel("neutral")).toBe("Neutral");
 		expect(getCategoryColorLabel("custom-color")).toBe("custom-color");
 	});
 });

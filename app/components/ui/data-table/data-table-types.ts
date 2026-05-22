@@ -5,6 +5,18 @@ export type RowIdGetter<TData> = (...args: [TData]) => Key;
 export type SearchableValuesGetter<TData> = (...args: [TData]) => unknown[];
 export type TotalSummaryRenderer = (...args: [number]) => ReactNode;
 
+export interface DataTableServerPagination {
+	page: number;
+	pageSize?: number;
+	totalPages: number;
+	canPreviousPage: boolean;
+	canNextPage: boolean;
+	onPreviousPage: () => void;
+	onNextPage: () => void;
+	onPageSizeChange?: (_pageSize: number) => void;
+	hidePageSize?: boolean;
+}
+
 export interface DataTableProps<TData, TValue> {
 	id?: string;
 	eyebrow: ReactNode;
@@ -20,5 +32,6 @@ export interface DataTableProps<TData, TValue> {
 	pageSizeOptions?: readonly number[];
 	totalSummary?: TotalSummaryRenderer;
 	paginationLabel?: string;
+	serverPagination?: DataTableServerPagination;
 	emptyMessage?: ReactNode;
 }

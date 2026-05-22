@@ -28,6 +28,7 @@ export function DataTable<TData, TValue>(props: DataTableProps<TData, TValue>) {
 		pageSizeOptions = PAGE_SIZE_OPTIONS,
 		totalSummary = (total) => `Total: ${total} registros`,
 		paginationLabel = "Paginación de la tabla",
+		serverPagination,
 		emptyMessage = "No se encontraron registros.",
 	} = props;
 	const { filteredRows, globalFilter, handleGlobalFilterChange, table } = useDataTable({
@@ -63,6 +64,7 @@ export function DataTable<TData, TValue>(props: DataTableProps<TData, TValue>) {
 			<DataTablePagination
 				label={paginationLabel}
 				pageSizeOptions={pageSizeOptions}
+				serverPagination={serverPagination}
 				table={table}
 			/>
 		</article>

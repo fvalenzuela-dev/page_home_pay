@@ -16,6 +16,11 @@
 	--color-secondary-hover: #e2e8f0;
 	--color-secondary-foreground: #020617;
 
+	--color-warning: #fbbf24;
+	--color-warning-hover: #f59e0b;
+	--color-warning-focus: #92400e;
+	--color-warning-foreground: #422006;
+
 	--color-accent: #f1f5f9;
 	--color-accent-foreground: #334155;
 
