@@ -36,6 +36,17 @@ describe("Button", () => {
 		expect(markup).toContain("hover:bg-secondary-hover");
 	});
 
+	it("supports the warning variant with an accessible focus indicator", () => {
+		const markup = renderToStaticMarkup(
+			<Button variant="warning">Cancelar</Button>,
+		);
+
+		expect(markup).toContain("bg-warning");
+		expect(markup).toContain("text-warning-foreground");
+		expect(markup).toContain("hover:bg-warning-hover");
+		expect(markup).toContain("focus-visible:outline-warning-focus");
+	});
+
 	it("can render as a child link", () => {
 		const markup = renderToStaticMarkup(
 			<Button asChild variant="link">

@@ -182,6 +182,7 @@ describe("CategoriesScreen", () => {
 
 		requireMarkup(markup, "Agregar categoría");
 		requireMarkup(markup, "Crear categoría");
+		requireMarkup(markup, "bg-warning");
 		requireMarkup(markup, "categories-color-success");
 		requireMarkup(markup, 'value="home"');
 		expect(markup).not.toContain("Icono APK");
@@ -212,6 +213,7 @@ describe("CategoriesScreen", () => {
 		requireMarkup(markup, 'role="dialog"');
 		requireMarkup(markup, "Editar categoría");
 		requireMarkup(markup, 'value="Gas"');
+		requireMarkup(markup, "bg-warning");
 		requireMarkup(markup, 'name="icon_web"');
 		requireMarkup(markup, 'value="gas"');
 		requireMarkup(markup, "🔥");
@@ -303,6 +305,7 @@ describe("CategoriesScreen", () => {
 		);
 
 		requireMarkup(markup, "¿Eliminar Seguro?");
+		requireMarkup(markup, "bg-warning");
 		requireMarkup(markup, "Sí, eliminar");
 	});
 

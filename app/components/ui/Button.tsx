@@ -12,6 +12,8 @@ const buttonVariants = cva(
 					"border border-primary bg-primary text-primary-foreground shadow-primary hover:-translate-y-px hover:bg-primary-hover hover:shadow-primary-lg focus-visible:outline-ring",
 				secondary:
 					"border border-secondary bg-secondary text-secondary-foreground hover:-translate-y-px hover:bg-secondary-hover focus-visible:outline-ring",
+				warning:
+					"border border-warning bg-warning text-warning-foreground hover:-translate-y-px hover:bg-warning-hover focus-visible:outline-warning-focus",
 				outline:
 					"border border-border bg-transparent text-foreground hover:-translate-y-px hover:bg-accent hover:text-accent-foreground focus-visible:outline-ring",
 				ghost:
