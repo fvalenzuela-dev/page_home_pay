@@ -111,6 +111,28 @@ function getCategoryColorClassName(color: string) {
 	);
 }
 
+function TrashIcon() {
+	return (
+		<svg
+			aria-hidden="true"
+			className="size-5"
+			fill="none"
+			focusable="false"
+			stroke="currentColor"
+			strokeLinecap="round"
+			strokeLinejoin="round"
+			strokeWidth="2"
+			viewBox="0 0 24 24"
+		>
+			<path d="M3 6h18" />
+			<path d="M8 6V4h8v2" />
+			<path d="M6 6l1 15h10l1-15" />
+			<path d="M10 11v6" />
+			<path d="M14 11v6" />
+		</svg>
+	);
+}
+
 function CategoryIcon({ category }: { category: Category }) {
 	const iconDisplay = getCategoryIconDisplay(category);
 
@@ -161,7 +183,7 @@ function createCategoryColumns(
 						}}
 					/>
 					<IconActionButton
-						icon="🗑"
+						icon={<TrashIcon />}
 						variant="danger-ghost"
 						aria-label={`Eliminar ${row.original.name}`}
 						onClick={() => {

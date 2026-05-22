@@ -167,6 +167,8 @@ describe("CategoriesScreen", () => {
 		requireMarkup(populated, "text-destructive");
 		requireMarkup(populated, "hover:bg-destructive/10");
 		requireMarkup(populated, "focus-visible:outline-destructive");
+		requireMarkup(populated, 'stroke="currentColor"');
+		requireMarkup(populated, 'fill="none"');
 		requireMarkup(populated, "Filas por página");
 		requireMarkup(populated, 'value="10"');
 		requireMarkup(populated, 'value="20"');
