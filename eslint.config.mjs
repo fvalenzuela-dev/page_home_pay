@@ -7,6 +7,14 @@ const eslintConfig = [
 	},
 	...nextVitals,
 	...nextTypescript,
+	{
+		rules: {
+			"@typescript-eslint/no-unused-vars": ["warn", {
+				"varsIgnorePattern": "^_",
+				"argsIgnorePattern": "^_"
+			}]
+		}
+	}
 ];
 
 export default eslintConfig;
