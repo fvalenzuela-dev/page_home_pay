@@ -26,6 +26,16 @@ describe("Button", () => {
 		expect(markup).toContain("w-full");
 	});
 
+	it("supports the secondary variant", () => {
+		const markup = renderToStaticMarkup(
+			<Button variant="secondary">Cancelar</Button>,
+		);
+
+		expect(markup).toContain("bg-secondary");
+		expect(markup).toContain("text-secondary-foreground");
+		expect(markup).toContain("hover:bg-secondary-hover");
+	});
+
 	it("can render as a child link", () => {
 		const markup = renderToStaticMarkup(
 			<Button asChild variant="link">

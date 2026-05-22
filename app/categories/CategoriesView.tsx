@@ -214,7 +214,7 @@ function EditDialogActions(
 	return (
 		<div className={modalActionsClassName}>
 			<Button
-				variant="outline"
+				variant="secondary"
 				size="md"
 				type="button"
 				onClick={props.onCancelEdit}
@@ -373,7 +373,7 @@ function DeleteDialog(
 				)}
 				<div className={modalActionsClassName}>
 					<Button
-						variant="outline"
+						variant="secondary"
 						size="md"
 						type="button"
 						onClick={props.onCancelDelete}
