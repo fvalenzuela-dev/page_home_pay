@@ -4,6 +4,9 @@ import type { DataTableServerPagination } from "./data-table-types";
 
 export const PAGE_SIZE_OPTIONS = [10, 25, 50] as const;
 
+const paginationButtonClassName =
+	"rounded-full border-[var(--outline-variant)] bg-[var(--surface-container-lowest)] text-[var(--on-surface)] hover:bg-[var(--surface-container-high)] hover:text-[var(--on-surface)] focus-visible:outline-[var(--primary)] max-[560px]:w-full";
+
 interface DataTablePaginationProps<TData> {
 	table: Table<TData>;
 	pageSizeOptions?: readonly number[];
@@ -61,7 +64,7 @@ export function DataTablePagination<TData>({
 
 			<div className="flex flex-wrap items-center justify-end gap-3 max-[560px]:grid max-[560px]:grid-cols-1">
 				<Button
-					className="rounded-full max-[560px]:w-full"
+					className={paginationButtonClassName}
 					disabled={!canPreviousPage}
 					size="md"
 					variant="outline"
@@ -73,7 +76,7 @@ export function DataTablePagination<TData>({
 					Página {page} de {totalPages}
 				</span>
 				<Button
-					className="rounded-full max-[560px]:w-full"
+					className={paginationButtonClassName}
 					disabled={!canNextPage}
 					size="md"
 					variant="outline"

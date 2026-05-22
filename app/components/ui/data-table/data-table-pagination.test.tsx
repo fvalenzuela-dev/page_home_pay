@@ -1,4 +1,5 @@
 import { Children, isValidElement, type ReactElement, type ReactNode } from "react";
+import { renderToStaticMarkup } from "react-dom/server";
 import type { Table } from "@tanstack/react-table";
 import { describe, expect, it, vi } from "vitest";
 
@@ -82,5 +83,18 @@ describe("DataTablePagination", () => {
 
 		expect(table.setPageSize).toHaveBeenCalledWith(10);
 		expect(onPageSizeChange).toHaveBeenCalledWith(10);
+	});
+
+	it("uses theme-scoped tokens for previous and next buttons", () => {
+		const table = createTable(25);
+		const markup = renderToStaticMarkup(<DataTablePagination table={table} />);
+
+		expect(markup).toContain("Anterior");
+		expect(markup).toContain("Siguiente");
+		expect(markup).toContain("border-[var(--outline-variant)]");
+		expect(markup).toContain("bg-[var(--surface-container-lowest)]");
+		expect(markup).toContain("text-[var(--on-surface)]");
+		expect(markup).toContain("hover:bg-[var(--surface-container-high)]");
+		expect(markup).toContain("focus-visible:outline-[var(--primary)]");
 	});
 });
