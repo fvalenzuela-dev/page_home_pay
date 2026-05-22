@@ -93,13 +93,13 @@ const modalActionsClassName =
 	"flex justify-end gap-3 pt-2 max-[480px]:grid max-[480px]:grid-cols-1";
 
 const CATEGORY_COLOR_CLASS_NAMES: Record<CategoryColor, string> = {
-	primary: "text-[var(--primary)]",
-	secondary: "text-[var(--secondary)]",
-	success: "text-[var(--secondary)]",
-	danger: "text-[var(--error)]",
-	warning: "text-[#b26a00]",
-	info: "text-[#006a6a]",
-	neutral: "text-[var(--outline)]",
+	primary: "text-primary",
+	secondary: "text-secondary",
+	success: "text-secondary",
+	danger: "text-destructive",
+	warning: "text-warning",
+	info: "text-primary",
+	neutral: "text-border",
 };
 
 function getCategoryColorClassName(color: string) {
@@ -293,7 +293,7 @@ function IconOptions(
 							className={cn(
 								iconOptionPreviewClassName,
 								getCategoryColorClassName(
-									props.state.editDraft?.colorWeb ?? "success",
+									props.state.editDraft?.colorWeb ?? "primary",
 								),
 							)}
 							aria-hidden="true"

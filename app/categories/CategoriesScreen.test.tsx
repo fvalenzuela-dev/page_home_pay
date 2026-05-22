@@ -156,7 +156,7 @@ describe("CategoriesScreen", () => {
 		requireMarkup(populated, "⚡");
 		requireMarkup(populated, "Sin icono");
 		requireMarkup(populated, "✓");
-		requireMarkup(populated, "categories-color-success");
+		requireMarkup(populated, "categories-color-primary");
 		requireMarkup(populated, "Agregar categoría");
 		requireMarkup(populated, "Editar Luz");
 		requireMarkup(populated, "Eliminar Luz");
@@ -173,6 +173,43 @@ describe("CategoriesScreen", () => {
 		expect(populated).not.toContain("Primary");
 	});
 
+	it("renders legacy API colors with mapped theme token classes", async () => {
+		const { default: CategoriesScreen } = await loadScreen();
+		const markup = renderToStaticMarkup(
+			<CategoriesScreen
+				autoLoad={false}
+				initialState={{
+					status: "success",
+					categories: [
+						{
+							id: 6,
+							name: "Agua",
+							colorApk: "success",
+							colorWeb: "success",
+							iconApk: "water",
+							iconWeb: "water",
+						},
+						{
+							id: 7,
+							name: "Internet",
+							colorApk: "info",
+							colorWeb: "info",
+							iconApk: "internet",
+							iconWeb: "internet",
+						},
+					],
+				}}
+			/>,
+		);
+
+		requireMarkup(markup, "Agua");
+		requireMarkup(markup, "categories-color-success");
+		requireMarkup(markup, "text-secondary");
+		requireMarkup(markup, "Internet");
+		requireMarkup(markup, "categories-color-info");
+		requireMarkup(markup, "text-primary");
+	});
+
 	it("opens create modal with default visual options", async () => {
 		const { default: CategoriesScreen, openCreateModal } = await loadScreen();
 		const state = openCreateModal({ status: "success", categories: [] });
@@ -183,7 +220,12 @@ describe("CategoriesScreen", () => {
 		requireMarkup(markup, "Agregar categoría");
 		requireMarkup(markup, "Crear categoría");
 		requireMarkup(markup, "bg-warning");
-		requireMarkup(markup, "categories-color-success");
+		requireMarkup(markup, "categories-color-primary");
+		requireMarkup(markup, "text-primary");
+		requireMarkup(markup, "text-secondary");
+		requireMarkup(markup, "text-warning");
+		requireMarkup(markup, "text-destructive");
+		requireMarkup(markup, "text-border");
 		requireMarkup(markup, 'value="home"');
 		expect(markup).not.toContain("Icono APK");
 	});
@@ -444,7 +486,7 @@ describe("CategoriesScreen", () => {
 		).toEqual(
 			expect.objectContaining({
 				id: null,
-				colorWeb: "success",
+				colorWeb: "primary",
 				iconWeb: "home",
 			}),
 		);
