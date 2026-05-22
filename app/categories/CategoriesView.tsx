@@ -87,8 +87,10 @@ const colorOptionsClassName =
 	"grid grid-cols-[repeat(auto-fit,minmax(3rem,1fr))] gap-2";
 const choiceClassName =
 	"relative grid min-h-12 cursor-pointer place-items-center rounded-2xl border border-[var(--outline-variant)] bg-[var(--surface-container-low)] transition-[border-color,box-shadow,transform] duration-150 hover:-translate-y-px hover:border-[var(--primary)] has-[:focus-visible]:border-[var(--primary)] has-[:focus-visible]:shadow-[0_0_0_4px_color-mix(in_srgb,var(--primary)_18%,transparent)] has-[:checked]:border-[var(--primary)] has-[:checked]:bg-[color-mix(in_srgb,var(--primary)_10%,var(--surface-container-lowest))]";
+const colorSwatchFillClassName =
+	"pointer-events-none absolute inset-px rounded-[calc(1rem-1px)] bg-current opacity-0 transition-opacity duration-150 peer-checked:opacity-100";
 const colorSwatchBaseClassName =
-	"inline-block size-7 rounded-full bg-current shadow-[0_0_0_5px_color-mix(in_srgb,currentColor_16%,transparent)]";
+	"relative z-10 inline-block size-7 rounded-full bg-current shadow-[0_0_0_5px_color-mix(in_srgb,currentColor_16%,transparent)] peer-checked:shadow-none";
 const modalActionsClassName =
 	"flex justify-end gap-3 pt-2 max-[480px]:grid max-[480px]:grid-cols-1";
 
@@ -318,7 +320,7 @@ function ColorOptions(
 					<label className={choiceClassName} key={option.value}>
 						<span className="sr-only">{option.label}</span>
 						<input
-							className="sr-only"
+							className="peer sr-only"
 							checked={props.state.editDraft?.colorWeb === option.value}
 							name="color_web"
 							type="radio"
@@ -329,6 +331,13 @@ function ColorOptions(
 									value: getInputValue(event),
 								});
 							}}
+						/>
+						<span
+							className={cn(
+								colorSwatchFillClassName,
+								getCategoryColorClassName(option.value),
+							)}
+							aria-hidden="true"
 						/>
 						<span
 							className={cn(
