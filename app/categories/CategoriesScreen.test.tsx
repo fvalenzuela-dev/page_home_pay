@@ -61,7 +61,7 @@ function collectElements(node: ReactNode): ReactElement<ElementProps>[] {
 		return [];
 	}
 
-	if (typeof node.type === "function") {
+	if (typeof node.type === "function" && node.type.name !== "DataTable") {
 		return collectElements(
 			Reflect.apply(node.type, undefined, [node.props]) as ReactNode,
 		);
@@ -339,20 +339,34 @@ describe("CategoriesScreen", () => {
 		const view = CategoriesView({ state, ...handlers });
 		const elements = collectElements(view);
 		const buttons = elements.filter((element) => element.type === "button");
+		const dataTable = asElement(
+			elements.find((element) => element.props.id === "categories-grid"),
+		);
+		const columns = dataTable.props.columns as Array<{
+			id?: string;
+			cell?: (...args: [{ row: { original: (typeof baseState.categories)[number] } }]) =>
+				ReactNode;
+		}>;
+		const actionsColumn = columns.find((column) => column.id === "actions");
+		const actionButtons = collectElements(
+			actionsColumn?.cell?.({ row: { original: baseState.categories[0] } }),
+		).filter((element) => element.type === "button");
 
-		for (const label of [
-			"Agregar categoría",
-			"Anterior",
-			"Siguiente",
-			"Sí, eliminar",
-		]) {
+		for (const label of ["Agregar categoría", "Sí, eliminar"]) {
 			const button = buttons.find((candidate) =>
 				textFrom(candidate.props.children).includes(label),
 			);
 			callHandler(asElement(button).props.onClick);
 		}
+		callHandler(
+			(dataTable.props.serverPagination as { onPreviousPage: () => void })
+				.onPreviousPage,
+		);
+		callHandler(
+			(dataTable.props.serverPagination as { onNextPage: () => void }).onNextPage,
+		);
 		for (const ariaLabel of ["Editar Luz", "Eliminar Luz"]) {
-			const button = buttons.find(
+			const button = actionButtons.find(
 				(candidate) => candidate.props["aria-label"] === ariaLabel,
 			);
 			callHandler(asElement(button).props.onClick);

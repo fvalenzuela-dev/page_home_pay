@@ -2,6 +2,11 @@ import type { Dispatch, FormEventHandler } from "react";
 
 import AppHeader from "../components/layout/AppHeader";
 import Button from "../components/ui/Button";
+import {
+	DataTable,
+	DataTableColumnHeader,
+	type ColumnDef,
+} from "../components/ui/data-table/data-table";
 import { cn } from "../lib/utils";
 import {
 	CATEGORY_COLOR_OPTIONS,
@@ -33,18 +38,6 @@ export interface CategoriesViewProps {
 	onCancelDelete: () => void;
 }
 
-interface CategoriesTableProps {
-	categories: Category[];
-	onOpenEdit: Dispatch<number>;
-	onOpenDelete: Dispatch<number>;
-}
-
-interface CategoryRowProps {
-	category: Category;
-	onOpenEdit: Dispatch<number>;
-	onOpenDelete: Dispatch<number>;
-}
-
 const categoriesShellClassName =
 	"min-h-screen bg-[radial-gradient(circle_at_top_left,rgb(37_99_235_/_18%),transparent_28rem),linear-gradient(135deg,var(--surface),var(--surface-container-low))] p-4 text-[var(--on-surface)] transition-[background,color] duration-150 [--error-container:#ffdad6] [--error:#ba1a1a] [--on-primary:#ffffff] [--on-surface-variant:#434655] [--on-surface:#0b1c30] [--outline-variant:#c3c6d7] [--outline:#737686] [--primary-container:#2563eb] [--primary:#004ac6] [--secondary-container:#6cf8bb] [--secondary:#006c49] [--shadow:rgb(11_28_48_/_10%)] [--surface-container-high:#dce9ff] [--surface-container-low:#eff4ff] [--surface-container-lowest:#ffffff] [--surface-container:#e5eeff] [--surface-dim:#cbdbf5] [--surface:#f8f9ff] [color-scheme:light] has-[#theme-switch:checked]:[--error-container:#93000a] has-[#theme-switch:checked]:[--error:#ffb4ab] has-[#theme-switch:checked]:[--on-primary:#00174b] has-[#theme-switch:checked]:[--on-surface-variant:#c3c6d7] has-[#theme-switch:checked]:[--on-surface:#eaf1ff] has-[#theme-switch:checked]:[--outline-variant:#43556d] has-[#theme-switch:checked]:[--outline:#9ca3b4] has-[#theme-switch:checked]:[--primary-container:#2563eb] has-[#theme-switch:checked]:[--primary:#b4c5ff] has-[#theme-switch:checked]:[--secondary-container:#005236] has-[#theme-switch:checked]:[--secondary:#6ffbbe] has-[#theme-switch:checked]:[--shadow:rgb(0_0_0_/_28%)] has-[#theme-switch:checked]:[--surface-container-high:#2b3d55] has-[#theme-switch:checked]:[--surface-container-low:#182b44] has-[#theme-switch:checked]:[--surface-container-lowest:#13243a] has-[#theme-switch:checked]:[--surface-container:#213145] has-[#theme-switch:checked]:[--surface-dim:#213145] has-[#theme-switch:checked]:[--surface:#0b1c30] has-[#theme-switch:checked]:[color-scheme:dark] max-[560px]:p-3";
 
@@ -71,18 +64,9 @@ const errorMessageClassName =
 	"rounded-2xl border border-[color-mix(in_srgb,var(--error)_35%,transparent)] bg-[color-mix(in_srgb,var(--error-container)_78%,transparent)] p-4 text-sm font-semibold text-[var(--error)]";
 const successMessageClassName =
 	"rounded-2xl border border-[color-mix(in_srgb,var(--secondary)_35%,transparent)] bg-[color-mix(in_srgb,var(--secondary-container)_42%,transparent)] p-4 text-sm font-semibold text-[var(--secondary)]";
-const tableWrapClassName =
-	"overflow-hidden rounded-3xl border border-[var(--outline-variant)] bg-[var(--surface-container-lowest)]";
-const tableClassName = "w-full min-w-[38rem] border-collapse text-left";
-const tableHeadCellClassName =
-	"border-b border-[var(--outline-variant)] bg-[var(--surface-container-low)] px-4 py-3 text-xs font-bold tracking-[0.08em] text-[var(--on-surface-variant)] uppercase";
-const tableCellClassName =
-	"border-b border-[var(--outline-variant)] px-4 py-4 align-middle last:border-b-0";
 const iconPreviewBaseClassName =
 	"inline-grid size-11 place-items-center rounded-2xl bg-[color-mix(in_srgb,currentColor_14%,var(--surface-container-lowest))] text-xl shadow-[inset_0_0_0_1px_color-mix(in_srgb,currentColor_28%,transparent)]";
 const rowActionsClassName = "flex justify-end gap-2";
-const paginationClassName =
-	"mt-6 flex items-center justify-between gap-4 rounded-3xl border border-[var(--outline-variant)] bg-[var(--surface-container-low)] p-3 max-[560px]:grid max-[560px]:grid-cols-1";
 const modalBackdropClassName =
 	"fixed inset-0 z-30 grid place-items-center bg-slate-950/55 p-4 backdrop-blur-sm";
 const modalClassName =
@@ -123,36 +107,54 @@ function getCategoryColorClassName(color: string) {
 	);
 }
 
-function CategoryRow({ category, onOpenEdit, onOpenDelete }: CategoryRowProps) {
+function CategoryIcon({ category }: { category: Category }) {
 	const iconDisplay = getCategoryIconDisplay(category);
 
 	return (
-		<tr className="transition-colors duration-150 hover:bg-[var(--surface-container-low)]">
-			<td className={cn(tableCellClassName, "w-20")}>
-				<span
-					className={cn(
-						iconPreviewBaseClassName,
-						getCategoryColorClassName(iconDisplay.color),
-					)}
-					aria-label={`${category.name} icono`}
-					role="img"
-				>
-					{iconDisplay.glyph}
-				</span>
-			</td>
-			<td className={cn(tableCellClassName, "font-semibold")}>
-				{category.name}
-			</td>
-			<td className={tableCellClassName}>
+		<span
+			className={cn(
+				iconPreviewBaseClassName,
+				getCategoryColorClassName(iconDisplay.color),
+			)}
+			aria-label={`${category.name} icono`}
+			role="img"
+		>
+			{iconDisplay.glyph}
+		</span>
+	);
+}
+
+function createCategoryColumns(
+	onOpenEdit: Dispatch<number>,
+	onOpenDelete: Dispatch<number>,
+): ColumnDef<Category>[] {
+	return [
+		{
+			id: "icon",
+			header: () => <span>Icono</span>,
+			enableSorting: false,
+			cell: ({ row }) => <CategoryIcon category={row.original} />,
+		},
+		{
+			accessorKey: "name",
+			header: ({ column }) => (
+				<DataTableColumnHeader column={column} title="Nombre" />
+			),
+			cell: ({ row }) => <span className="font-semibold">{row.original.name}</span>,
+		},
+		{
+			id: "actions",
+			header: () => <span>Acciones</span>,
+			enableSorting: false,
+			cell: ({ row }) => (
 				<div className={rowActionsClassName}>
 					<Button
 						className="rounded-full"
 						variant="outline"
 						size="icon"
-						type="button"
-						aria-label={`Editar ${category.name}`}
+						aria-label={`Editar ${row.original.name}`}
 						onClick={() => {
-							onOpenEdit(category.id);
+							onOpenEdit(row.original.id);
 						}}
 					>
 						<span aria-hidden="true">✎</span>
@@ -161,82 +163,17 @@ function CategoryRow({ category, onOpenEdit, onOpenDelete }: CategoryRowProps) {
 						className="rounded-full"
 						variant="danger"
 						size="icon"
-						type="button"
-						aria-label={`Eliminar ${category.name}`}
+						aria-label={`Eliminar ${row.original.name}`}
 						onClick={() => {
-							onOpenDelete(category.id);
+							onOpenDelete(row.original.id);
 						}}
 					>
 						<span aria-hidden="true">🗑</span>
 					</Button>
 				</div>
-			</td>
-		</tr>
-	);
-}
-
-function CategoriesTable(props: CategoriesTableProps) {
-	return (
-		<div className={tableWrapClassName}>
-			<div className="overflow-x-auto">
-				<table className={tableClassName}>
-					<thead>
-						<tr>
-							<th className={tableHeadCellClassName} aria-label="Icono" />
-							<th className={tableHeadCellClassName}>Nombre</th>
-							<th className={cn(tableHeadCellClassName, "text-right")}>
-								Acciones
-							</th>
-						</tr>
-					</thead>
-					<tbody>
-						{props.categories.map((category) => (
-							<CategoryRow
-								category={category}
-								key={category.id}
-								onOpenEdit={props.onOpenEdit}
-								onOpenDelete={props.onOpenDelete}
-							/>
-						))}
-					</tbody>
-				</table>
-			</div>
-		</div>
-	);
-}
-
-function CategoriesPagination(
-	props: Pick<CategoriesViewProps, "state" | "onPreviousPage" | "onNextPage">,
-) {
-	return (
-		<nav
-			className={paginationClassName}
-			aria-label="Paginación de categorías"
-		>
-			<Button
-				variant="outline"
-				size="md"
-				type="button"
-				disabled={props.state.page <= 1}
-				onClick={props.onPreviousPage}
-			>
-				Anterior
-			</Button>
-			<span className="text-center text-sm font-bold text-[var(--on-surface-variant)]">
-				{" "}
-				Página {props.state.page} de {props.state.totalPages}{" "}
-			</span>
-			<Button
-				variant="outline"
-				size="md"
-				type="button"
-				disabled={props.state.page >= props.state.totalPages}
-				onClick={props.onNextPage}
-			>
-				Siguiente
-			</Button>
-		</nav>
-	);
+			),
+		},
+	];
 }
 
 function ErrorMessage({ message }: { message: string | null }) {
@@ -482,8 +419,13 @@ function CategoriesPanelHeader(
 }
 
 function CategoriesPanelBody(
-	props: Pick<CategoriesViewProps, "state" | "onOpenEdit" | "onOpenDelete">,
+	props: Pick<
+		CategoriesViewProps,
+		"state" | "onOpenEdit" | "onOpenDelete" | "onPreviousPage" | "onNextPage"
+	>,
 ) {
+	const columns = createCategoryColumns(props.onOpenEdit, props.onOpenDelete);
+
 	return (
 		<>
 			{props.state.successMessage !== null && (
@@ -501,10 +443,28 @@ function CategoriesPanelBody(
 				)}
 			{props.state.status === "success" &&
 				props.state.categories.length > 0 && (
-					<CategoriesTable
-						categories={props.state.categories}
-						onOpenEdit={props.onOpenEdit}
-						onOpenDelete={props.onOpenDelete}
+					<DataTable
+						id="categories-grid"
+						eyebrow="Endpoint /categories"
+						title="Listado paginado"
+						data={props.state.categories}
+						columns={columns}
+						getRowId={(category) => category.id}
+						searchColumnIds={["name"]}
+						searchPlaceholder="Buscar categorías..."
+						initialPageSize={props.state.limit}
+						pageSizeOptions={[props.state.limit]}
+						totalSummary={() => `${props.state.totalItems} categorías`}
+						paginationLabel="Paginación de categorías"
+						serverPagination={{
+							page: props.state.page,
+							totalPages: props.state.totalPages,
+							canPreviousPage: props.state.page > 1,
+							canNextPage: props.state.page < props.state.totalPages,
+							onPreviousPage: props.onPreviousPage,
+							onNextPage: props.onNextPage,
+							hidePageSize: true,
+						}}
 					/>
 				)}
 		</>
@@ -525,9 +485,6 @@ function CategoriesPanel(props: CategoriesViewProps) {
 				state={props.state}
 				onOpenEdit={props.onOpenEdit}
 				onOpenDelete={props.onOpenDelete}
-			/>
-			<CategoriesPagination
-				state={props.state}
 				onPreviousPage={props.onPreviousPage}
 				onNextPage={props.onNextPage}
 			/>
