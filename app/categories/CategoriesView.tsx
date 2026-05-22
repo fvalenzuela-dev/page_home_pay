@@ -154,7 +154,7 @@ function createCategoryColumns(
 				<div className={rowActionsClassName}>
 					<IconActionButton
 						icon="✎"
-						variant="primary-soft"
+						variant="primary-ghost"
 						aria-label={`Editar ${row.original.name}`}
 						onClick={() => {
 							onOpenEdit(row.original.id);
@@ -162,7 +162,7 @@ function createCategoryColumns(
 					/>
 					<IconActionButton
 						icon="🗑"
-						variant="danger-soft"
+						variant="danger-ghost"
 						aria-label={`Eliminar ${row.original.name}`}
 						onClick={() => {
 							onOpenDelete(row.original.id);

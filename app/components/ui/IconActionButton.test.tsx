@@ -48,6 +48,40 @@ describe("IconActionButton", () => {
 		expect(markup).toContain("focus-visible:outline-ring");
 	});
 
+	it("supports primary-ghost with icon color and transparent default background", () => {
+		const markup = renderToStaticMarkup(
+			<IconActionButton
+				aria-label="Editar categoría"
+				icon="✎"
+				variant="primary-ghost"
+			/>,
+		);
+
+		expect(markup).toContain("border-transparent");
+		expect(markup).toContain("bg-transparent");
+		expect(markup).toContain("text-primary");
+		expect(markup).toContain("hover:bg-primary/10");
+		expect(markup).toContain("focus-visible:outline-ring");
+		expect(markup).not.toContain("bg-primary/15");
+	});
+
+	it("supports danger-ghost with icon color and transparent default background", () => {
+		const markup = renderToStaticMarkup(
+			<IconActionButton
+				aria-label="Eliminar categoría"
+				icon="🗑"
+				variant="danger-ghost"
+			/>,
+		);
+
+		expect(markup).toContain("border-transparent");
+		expect(markup).toContain("bg-transparent");
+		expect(markup).toContain("text-destructive");
+		expect(markup).toContain("hover:bg-destructive/10");
+		expect(markup).toContain("focus-visible:outline-destructive");
+		expect(markup).not.toContain("bg-destructive/40");
+	});
+
 	it("passes through standard button props", () => {
 		const markup = renderToStaticMarkup(
 			<IconActionButton

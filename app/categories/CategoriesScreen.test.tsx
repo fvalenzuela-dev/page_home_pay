@@ -160,10 +160,12 @@ describe("CategoriesScreen", () => {
 		requireMarkup(populated, "Agregar categoría");
 		requireMarkup(populated, "Editar Luz");
 		requireMarkup(populated, "Eliminar Luz");
-		requireMarkup(populated, "bg-primary/15");
-		requireMarkup(populated, "border-primary/40");
-		requireMarkup(populated, "hover:bg-primary/25");
-		requireMarkup(populated, "bg-destructive/40");
+		requireMarkup(populated, "bg-transparent");
+		requireMarkup(populated, "border-transparent");
+		requireMarkup(populated, "text-primary");
+		requireMarkup(populated, "hover:bg-primary/10");
+		requireMarkup(populated, "text-destructive");
+		requireMarkup(populated, "hover:bg-destructive/10");
 		requireMarkup(populated, "focus-visible:outline-destructive");
 		requireMarkup(populated, "Filas por página");
 		requireMarkup(populated, 'value="10"');
@@ -435,6 +437,26 @@ describe("CategoriesScreen", () => {
 			);
 			callHandler(asElement(button).props.onClick);
 		}
+		expect(
+			actionButtons.find(
+				(candidate) => candidate.props["aria-label"] === "Editar Luz",
+			)?.props.className,
+		).toContain("text-primary");
+		expect(
+			actionButtons.find(
+				(candidate) => candidate.props["aria-label"] === "Editar Luz",
+			)?.props.className,
+		).toContain("bg-transparent");
+		expect(
+			actionButtons.find(
+				(candidate) => candidate.props["aria-label"] === "Eliminar Luz",
+			)?.props.className,
+		).toContain("text-destructive");
+		expect(
+			actionButtons.find(
+				(candidate) => candidate.props["aria-label"] === "Eliminar Luz",
+			)?.props.className,
+		).toContain("bg-transparent");
 		for (const button of buttons.filter((candidate) =>
 			textFrom(candidate.props.children).includes("Cancelar"),
 		)) {
