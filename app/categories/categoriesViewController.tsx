@@ -18,10 +18,13 @@ export function renderCategoriesView(
 		<CategoriesView
 			state={state}
 			onPreviousPage={() => {
-				setState((current) => ({ ...current, page: state.page - 1 }));
+				setState((current) => ({ ...current, page: current.page - 1 }));
 			}}
 			onNextPage={() => {
-				setState((current) => ({ ...current, page: state.page + 1 }));
+				setState((current) => ({ ...current, page: current.page + 1 }));
+			}}
+			onPageSizeChange={(limit) => {
+				setState((current) => ({ ...current, limit, page: 1 }));
 			}}
 			onOpenCreate={() => {
 				setState((current) => openCreateModal(current));

@@ -25,6 +25,7 @@ export interface CategoriesViewProps {
 	state: CategoriesState;
 	onPreviousPage: () => void;
 	onNextPage: () => void;
+	onPageSizeChange: Dispatch<number>;
 	onOpenCreate: () => void;
 	onOpenEdit: Dispatch<number>;
 	onOpenDelete: Dispatch<number>;
@@ -421,7 +422,12 @@ function CategoriesPanelHeader(
 function CategoriesPanelBody(
 	props: Pick<
 		CategoriesViewProps,
-		"state" | "onOpenEdit" | "onOpenDelete" | "onPreviousPage" | "onNextPage"
+		| "state"
+		| "onOpenEdit"
+		| "onOpenDelete"
+		| "onPreviousPage"
+		| "onNextPage"
+		| "onPageSizeChange"
 	>,
 ) {
 	const columns = createCategoryColumns(props.onOpenEdit, props.onOpenDelete);
@@ -453,17 +459,18 @@ function CategoriesPanelBody(
 						searchColumnIds={["name"]}
 						searchPlaceholder="Buscar categorías..."
 						initialPageSize={props.state.limit}
-						pageSizeOptions={[props.state.limit]}
+						pageSizeOptions={[10, 20, 25, 50]}
 						totalSummary={() => `${props.state.totalItems} categorías`}
 						paginationLabel="Paginación de categorías"
 						serverPagination={{
 							page: props.state.page,
+							pageSize: props.state.limit,
 							totalPages: props.state.totalPages,
 							canPreviousPage: props.state.page > 1,
 							canNextPage: props.state.page < props.state.totalPages,
 							onPreviousPage: props.onPreviousPage,
 							onNextPage: props.onNextPage,
-							hidePageSize: true,
+							onPageSizeChange: props.onPageSizeChange,
 						}}
 					/>
 				)}
@@ -487,6 +494,7 @@ function CategoriesPanel(props: CategoriesViewProps) {
 				onOpenDelete={props.onOpenDelete}
 				onPreviousPage={props.onPreviousPage}
 				onNextPage={props.onNextPage}
+				onPageSizeChange={props.onPageSizeChange}
 			/>
 		</section>
 	);

@@ -160,6 +160,11 @@ describe("CategoriesScreen", () => {
 		requireMarkup(populated, "Agregar categoría");
 		requireMarkup(populated, "Editar Luz");
 		requireMarkup(populated, "Eliminar Luz");
+		requireMarkup(populated, "Filas por página");
+		requireMarkup(populated, 'value="10"');
+		requireMarkup(populated, 'value="20"');
+		requireMarkup(populated, 'value="25"');
+		requireMarkup(populated, 'value="50"');
 		expect(populated).not.toContain(">Editar<");
 		expect(populated).not.toContain(">Eliminar<");
 		requireMarkup(populated, "Página 1 de 2");
@@ -327,6 +332,7 @@ describe("CategoriesScreen", () => {
 		const handlers = {
 			onPreviousPage: vi.fn(),
 			onNextPage: vi.fn(),
+			onPageSizeChange: vi.fn(),
 			onOpenCreate: vi.fn(),
 			onOpenEdit: vi.fn(),
 			onOpenDelete: vi.fn(),
@@ -365,6 +371,14 @@ describe("CategoriesScreen", () => {
 		callHandler(
 			(dataTable.props.serverPagination as { onNextPage: () => void }).onNextPage,
 		);
+		callHandler(
+			(
+				dataTable.props.serverPagination as {
+					onPageSizeChange: (pageSize: number) => void;
+				}
+			).onPageSizeChange,
+			10,
+		);
 		for (const ariaLabel of ["Editar Luz", "Eliminar Luz"]) {
 			const button = actionButtons.find(
 				(candidate) => candidate.props["aria-label"] === ariaLabel,
@@ -390,6 +404,7 @@ describe("CategoriesScreen", () => {
 		expect(handlers.onOpenDelete).toHaveBeenCalledWith(1);
 		expect(handlers.onPreviousPage).toHaveBeenCalledOnce();
 		expect(handlers.onNextPage).toHaveBeenCalledOnce();
+		expect(handlers.onPageSizeChange).toHaveBeenCalledWith(10);
 		expect(handlers.onSubmitEdit).toHaveBeenCalledOnce();
 		expect(handlers.onUpdateDraftField).toHaveBeenCalledTimes(3);
 		expect(handlers.onConfirmDelete).toHaveBeenCalledOnce();

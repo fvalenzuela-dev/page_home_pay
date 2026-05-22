@@ -28,6 +28,8 @@ export function DataTablePagination<TData>({
 	const showPageSize = serverPagination?.hidePageSize !== true;
 	const handlePreviousPage = serverPagination?.onPreviousPage ?? table.previousPage;
 	const handleNextPage = serverPagination?.onNextPage ?? table.nextPage;
+	const pageSize =
+		serverPagination?.pageSize ?? table.getState().pagination.pageSize;
 
 	return (
 		<nav
@@ -40,9 +42,12 @@ export function DataTablePagination<TData>({
 					<select
 						className="min-w-28 rounded-full border border-[var(--outline-variant)] bg-[var(--surface-container-lowest)] px-3.5 py-2.5 pr-8 font-[inherit] text-[var(--on-surface)]"
 						aria-label="Filas por página"
-						value={table.getState().pagination.pageSize}
+						value={pageSize}
 						onChange={(event) => {
-							table.setPageSize(Number(event.target.value));
+							const nextPageSize = Number(event.target.value);
+
+							table.setPageSize(nextPageSize);
+							serverPagination?.onPageSizeChange?.(nextPageSize);
 						}}
 					>
 						{pageSizeOptions.map((option) => (

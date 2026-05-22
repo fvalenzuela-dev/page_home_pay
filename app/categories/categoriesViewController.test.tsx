@@ -46,6 +46,7 @@ describe("renderCategoriesView", () => {
 
 		callHandler(view.props.onPreviousPage);
 		callHandler(view.props.onNextPage);
+		callHandler(view.props.onPageSizeChange, 10);
 		callHandler(view.props.onOpenCreate);
 		callHandler(view.props.onOpenEdit, 7);
 		callHandler(view.props.onOpenDelete, 7);
@@ -58,24 +59,27 @@ describe("renderCategoriesView", () => {
 		callHandler(view.props.onSubmitEdit, { preventDefault: vi.fn() });
 		callHandler(view.props.onConfirmDelete);
 
-		expect(setState).toHaveBeenCalledTimes(7);
-		expect(setState.mock.calls[0][0](state)).toEqual(
-			expect.objectContaining({ page: 1 }),
+		expect(setState).toHaveBeenCalledTimes(8);
+		expect(setState.mock.calls[0][0]({ ...state, page: 5 })).toEqual(
+			expect.objectContaining({ page: 4 }),
 		);
-		expect(setState.mock.calls[1][0](state)).toEqual(
-			expect.objectContaining({ page: 3 }),
+		expect(setState.mock.calls[1][0]({ ...state, page: 5 })).toEqual(
+			expect.objectContaining({ page: 6 }),
 		);
-		expect(setState.mock.calls[2][0](state).editDraft).toEqual(
-			expect.objectContaining({ id: null }),
+		expect(setState.mock.calls[2][0]({ ...state, page: 5, limit: 20 })).toEqual(
+			expect.objectContaining({ limit: 10, page: 1 }),
 		);
 		expect(setState.mock.calls[3][0](state).editDraft).toEqual(
+			expect.objectContaining({ id: null }),
+		);
+		expect(setState.mock.calls[4][0](state).editDraft).toEqual(
 			expect.objectContaining({ id: 7 }),
 		);
-		expect(setState.mock.calls[4][0](state).deleteCandidate).toEqual(
+		expect(setState.mock.calls[5][0](state).deleteCandidate).toEqual(
 			expect.objectContaining({ id: 7 }),
 		);
-		expect(setState.mock.calls[5][0](state).editDraft).toBeNull();
-		expect(setState.mock.calls[6][0](state).deleteCandidate).toBeNull();
+		expect(setState.mock.calls[6][0](state).editDraft).toBeNull();
+		expect(setState.mock.calls[7][0](state).deleteCandidate).toBeNull();
 		expect(passthroughHandlers[0]).toHaveBeenCalledWith({
 			field: "name",
 			value: "Nueva",

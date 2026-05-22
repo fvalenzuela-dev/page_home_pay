@@ -7,11 +7,13 @@ export type TotalSummaryRenderer = (...args: [number]) => ReactNode;
 
 export interface DataTableServerPagination {
 	page: number;
+	pageSize?: number;
 	totalPages: number;
 	canPreviousPage: boolean;
 	canNextPage: boolean;
 	onPreviousPage: () => void;
 	onNextPage: () => void;
+	onPageSizeChange?: (pageSize: number) => void;
 	hidePageSize?: boolean;
 }
 
