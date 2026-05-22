@@ -402,11 +402,11 @@ describe("CategoriesScreen", () => {
 		const dataTable = asElement(
 			elements.find((element) => element.props.id === "categories-grid"),
 		);
-		const columns = dataTable.props.columns as Array<{
+		const columns = dataTable.props.columns as {
 			id?: string;
-			cell?: (...args: [{ row: { original: (typeof baseState.categories)[number] } }]) =>
+			cell?: (..._args: [{ row: { original: (typeof baseState.categories)[number] } }]) =>
 				ReactNode;
-		}>;
+		}[];
 		const actionsColumn = columns.find((column) => column.id === "actions");
 		const actionButtons = collectElements(
 			actionsColumn?.cell?.({ row: { original: baseState.categories[0] } }),
@@ -428,7 +428,7 @@ describe("CategoriesScreen", () => {
 		callHandler(
 			(
 				dataTable.props.serverPagination as {
-					onPageSizeChange: (pageSize: number) => void;
+					onPageSizeChange: (_pageSize: number) => void;
 				}
 			).onPageSizeChange,
 			10,

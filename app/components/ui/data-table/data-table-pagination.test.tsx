@@ -50,7 +50,7 @@ describe("DataTablePagination", () => {
 			collectElements(view).find((element) => element.type === "select"),
 		);
 
-		(select.props.onChange as (event: { target: { value: string } }) => void)({
+		(select.props.onChange as (_event: { target: { value: string } }) => void)({
 			target: { value: "50" },
 		});
 

@@ -106,8 +106,7 @@ const CATEGORY_COLOR_CLASS_NAMES: Record<CategoryColor, string> = {
 function getCategoryColorClassName(color: string) {
 	return cn(
 		getColorClassName(color),
-		CATEGORY_COLOR_CLASS_NAMES[color as CategoryColor] ??
-			CATEGORY_COLOR_CLASS_NAMES.neutral,
+		CATEGORY_COLOR_CLASS_NAMES[color as CategoryColor],
 	);
 }
 
