@@ -12,6 +12,7 @@ import HomeDashboard, {
 	MOCK_HOME_RECORDS,
 	PAGE_SIZE_OPTIONS,
 	getPaginatedHomeRecords,
+	getThemeActionToastInput,
 	type HomeRecord,
 } from "./HomeDashboard";
 import { CATEGORY_COLOR_OPTIONS } from "./categories/categoryOptions";
@@ -168,11 +169,11 @@ describe("HomePage", () => {
 
 	it("includes theme controls", async () => {
 		const markup = await renderHomeHeaderMarkup();
-		const fieldsetClassName = getClassNameFromTag(getFirstTag(markup, "fieldset"));
-		const legendClassName = getClassNameFromTag(getFirstTag(markup, "legend"));
-		const labelClassName = getClassNameFromTag(
-			getFirstTag(markup, "label"),
+		const fieldsetClassName = getClassNameFromTag(
+			getFirstTag(markup, "fieldset"),
 		);
+		const legendClassName = getClassNameFromTag(getFirstTag(markup, "legend"));
+		const labelClassName = getClassNameFromTag(getFirstTag(markup, "label"));
 
 		expect(fieldsetClassName).toContain("flex min-w-0");
 		expect(legendClassName).toBe("sr-only");
@@ -184,9 +185,7 @@ describe("HomePage", () => {
 		expect(hasTagWithAttribute(markup, "input", "id", "theme-switch")).toBe(
 			true,
 		);
-		expect(hasTagWithAttribute(markup, "input", "type", "checkbox")).toBe(
-			true,
-		);
+		expect(hasTagWithAttribute(markup, "input", "type", "checkbox")).toBe(true);
 		expect(
 			hasTagWithAttribute(
 				markup,
@@ -211,14 +210,16 @@ describe("HomePage", () => {
 	it("links navigation items and administration submenu", async () => {
 		const main = await renderHomePageElement();
 		const markup = await renderHomeHeaderMarkup();
-		const detailsClassName = getClassNameFromTag(getFirstTag(markup, "details"));
+		const detailsClassName = getClassNameFromTag(
+			getFirstTag(markup, "details"),
+		);
 		const hero = asElement(Children.toArray(main.props.children)[1]);
 
 		expect(hasTagWithAttribute(markup, "a", "href", "#dashboard")).toBe(true);
 		expect(hasTagWithAttribute(markup, "a", "href", "#contacto")).toBe(true);
 		expect(detailsClassName).toContain("group relative");
 		expect(markup).toContain("Administración");
-		expect(hasTagWithAttribute(markup, "a", "href", "#administración")).toBe(
+		expect(hasTagWithAttribute(markup, "a", "href", "#administracion")).toBe(
 			true,
 		);
 		expect(hasTagWithAttribute(markup, "a", "href", "/categories")).toBe(true);
@@ -256,7 +257,13 @@ describe("HomePage", () => {
 				data={MOCK_HOME_RECORDS}
 				columns={HOME_PAYMENT_GRID_COLUMNS}
 				getRowId={(record) => record.id}
-				searchColumnIds={["merchant", "category", "dueDate", "status", "amount"]}
+				searchColumnIds={[
+					"merchant",
+					"category",
+					"dueDate",
+					"status",
+					"amount",
+				]}
 				getSearchableRowValues={(record) => [
 					record.status === "Scheduled" ? "Programado" : record.status,
 				]}
@@ -265,17 +272,27 @@ describe("HomePage", () => {
 				paginationLabel="Paginación de la grilla de pagos"
 			/>,
 		);
+		const viewMarkup = renderToStaticMarkup(view);
 		const [actionsPanel, , contactPanel] = elementChildren(view);
 		const [, actionsForm] = elementChildren(actionsPanel);
 		const actionButtons = elementChildren(actionsForm);
 
 		requireClassNameContains(view, "max-w-[1200px]");
-		requireId(actionsPanel, "administración");
+		requireId(actionsPanel, "administracion");
 		requireId(contactPanel, "contacto");
 		expect(actionButtons).toHaveLength(CATEGORY_COLOR_OPTIONS.length);
 		expect(actionButtons.map((button) => button.props.option)).toEqual(
 			CATEGORY_COLOR_OPTIONS,
 		);
+		expect(CATEGORY_COLOR_OPTIONS.map((option) => option.value)).toEqual([
+			"primary",
+			"secondary",
+			"success",
+			"warning",
+			"danger",
+			"info",
+			"neutral",
+		]);
 		expect(gridMarkup).toContain('id="payment-grid"');
 		expect(gridMarkup).toContain("Buscar pagos...");
 		expect(gridMarkup).toContain("50 registros");
@@ -283,10 +300,30 @@ describe("HomePage", () => {
 		expect(gridMarkup).toContain("primary-container)_28%");
 		expect(gridMarkup).toContain("Página 1 de 5");
 		expect(gridMarkup).toContain("Filas por página");
+		expect(viewMarkup).toContain("bg-success");
+		expect(viewMarkup).toContain("bg-info");
+		expect(viewMarkup).toContain("bg-surface");
 		expect(gridMarkup).toContain("even:bg-[var(--surface-container-low)]");
 		expect(gridMarkup).toContain("hover:bg-[var(--surface-container)]");
 		expect(gridMarkup).toContain("Programado");
 		expect(gridMarkup.match(/<tr/g)).toHaveLength(11);
+	});
+
+	it("maps administration action colors to toast variants", () => {
+		expect(
+			CATEGORY_COLOR_OPTIONS.map((option) => [
+				option.value,
+				getThemeActionToastInput(option).variant,
+			]),
+		).toEqual([
+			["primary", "primary"],
+			["secondary", "secondary"],
+			["success", "success"],
+			["warning", "warning"],
+			["danger", "error"],
+			["info", "info"],
+			["neutral", "neutral"],
+		]);
 	});
 
 	it("matches payment status searches against visible Spanish labels", () => {
@@ -335,7 +372,9 @@ describe("HomePage", () => {
 				),
 				cell: ({ row }) => (
 					<span
-						className={row.original.stock > 0 ? "text-green-700" : "text-red-700"}
+						className={
+							row.original.stock > 0 ? "text-green-700" : "text-red-700"
+						}
 					>
 						{row.original.stock > 0
 							? `${row.original.stock} disponibles`

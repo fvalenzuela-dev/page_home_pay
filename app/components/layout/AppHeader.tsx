@@ -65,7 +65,7 @@ function getNavigationItems(homeHrefPrefix: string): NavigationItem[] {
 		{ label: "Dashboard", href: withPrefix(homeHrefPrefix, "#dashboard") },
 		{
 			label: "Administración",
-			href: withPrefix(homeHrefPrefix, "#administración"),
+			href: withPrefix(homeHrefPrefix, "#administracion"),
 			children: [{ label: "Categorías", href: "/categories" }],
 		},
 		{ label: "Contacto", href: withPrefix(homeHrefPrefix, "#contacto") },

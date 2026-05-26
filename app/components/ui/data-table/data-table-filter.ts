@@ -20,11 +20,12 @@ export function createGlobalFilter<TData>(
 ) {
 	return (
 		row: GlobalFilterRow<TData>,
-		_columnId: string,
+		columnId: string,
 		filterValue: unknown,
-		_addMeta?: unknown,
+		addMeta?: unknown,
 	) => {
-		void _addMeta;
+		void columnId;
+		void addMeta;
 		const query = String(filterValue ?? "").trim().toLowerCase();
 
 		if (!query) {
