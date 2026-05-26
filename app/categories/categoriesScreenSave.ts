@@ -8,8 +8,8 @@ import type {
 import type { CategoriesState } from "./categoriesState";
 
 interface ToastCallbacks {
-	success: (_message: string) => void;
-	error: (_message: string) => void;
+	success(message: string): void;
+	error(message: string): void;
 }
 
 export async function saveEdit(

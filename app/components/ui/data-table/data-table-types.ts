@@ -13,7 +13,7 @@ export interface DataTableServerPagination {
 	canNextPage: boolean;
 	onPreviousPage: () => void;
 	onNextPage: () => void;
-	onPageSizeChange?: (_pageSize: number) => void;
+	onPageSizeChange?: (pageSize: number) => void;
 	hidePageSize?: boolean;
 }
 

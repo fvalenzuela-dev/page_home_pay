@@ -65,7 +65,7 @@ export function ToastifyToast({
 	dismissAction,
 }: {
 	toast: Toast;
-	dismissAction: (_id: string) => void;
+	dismissAction: (id: string) => void;
 }) {
 	const title = toast.title ?? getToastVariantLabel(toast.variant);
 	const isError = toast.variant === "error";
@@ -110,7 +110,7 @@ export function ToastifyViewport({
 }: {
 	position: ToastPosition;
 	toasts: Toast[];
-	dismissAction: (_id: string) => void;
+	dismissAction: (id: string) => void;
 }) {
 	if (toasts.length === 0) return null;
 
