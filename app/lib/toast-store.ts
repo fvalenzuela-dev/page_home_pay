@@ -48,9 +48,7 @@ type ToastifyState = {
 	error: (
 		...args: [string, Omit<ToastInput, "message" | "variant">?]
 	) => string;
-	info: (
-		...args: [string, Omit<ToastInput, "message" | "variant">?]
-	) => string;
+	info: (...args: [string, Omit<ToastInput, "message" | "variant">?]) => string;
 	warning: (
 		...args: [string, Omit<ToastInput, "message" | "variant">?]
 	) => string;

@@ -63,7 +63,10 @@ function findCodacyUnusedParameterRisks(path) {
 				);
 			}
 
-			if (isTypeOnlyCallbackParameter(node) && node.dotDotDotToken === undefined) {
+			if (
+				isTypeOnlyCallbackParameter(node) &&
+				node.dotDotDotToken === undefined
+			) {
 				findings.push(
 					getLineFinding(
 						sourceFile,
@@ -82,7 +85,9 @@ function findCodacyUnusedParameterRisks(path) {
 	return findings;
 }
 
-const findings = collectFiles(SOURCE_DIR).flatMap(findCodacyUnusedParameterRisks);
+const findings = collectFiles(SOURCE_DIR).flatMap(
+	findCodacyUnusedParameterRisks,
+);
 
 if (findings.length > 0) {
 	console.error(findings.join("\n"));

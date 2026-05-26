@@ -422,22 +422,13 @@ describe("CategoriesScreen", () => {
 			);
 			callHandler(asElement(button).props.onClick);
 		}
-		callHandler(
-			(dataTable.props.serverPagination as { onPreviousPage: () => void })
-				.onPreviousPage,
-		);
-		callHandler(
-			(dataTable.props.serverPagination as { onNextPage: () => void })
-				.onNextPage,
-		);
-		callHandler(
-			(
-				dataTable.props.serverPagination as {
-					onPageSizeChange: (...args: [number]) => void;
-				}
-			).onPageSizeChange,
-			10,
-		);
+		const serverPagination = dataTable.props.serverPagination as Record<
+			string,
+			unknown
+		>;
+		callHandler(serverPagination.onPreviousPage);
+		callHandler(serverPagination.onNextPage);
+		callHandler(serverPagination.onPageSizeChange, 10);
 		for (const ariaLabel of ["Editar Luz", "Eliminar Luz"]) {
 			const button = actionButtons.find(
 				(candidate) => candidate.props["aria-label"] === ariaLabel,

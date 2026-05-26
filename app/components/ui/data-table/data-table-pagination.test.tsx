@@ -1,4 +1,9 @@
-import { Children, isValidElement, type ReactElement, type ReactNode } from "react";
+import {
+	Children,
+	isValidElement,
+	type ReactElement,
+	type ReactNode,
+} from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import type { Table } from "@tanstack/react-table";
 import { describe, expect, it, vi } from "vitest";
@@ -50,7 +55,11 @@ describe("DataTablePagination", () => {
 			collectElements(view).find((element) => element.type === "select"),
 		);
 
-		(select.props.onChange as (...args: [{ target: { value: string } }]) => void)({
+		(
+			select.props.onChange as (
+				...args: [{ target: { value: string } }]
+			) => void
+		)({
 			target: { value: "50" },
 		});
 
@@ -77,7 +86,11 @@ describe("DataTablePagination", () => {
 			collectElements(view).find((element) => element.type === "select"),
 		);
 
-		(select.props.onChange as (...args: [{ target: { value: string } }]) => void)({
+		(
+			select.props.onChange as (
+				...args: [{ target: { value: string } }]
+			) => void
+		)({
 			target: { value: "10" },
 		});
 

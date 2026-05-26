@@ -19,7 +19,9 @@ function createStateHarness(initialState: CategoriesState) {
 	let state = initialState;
 	const setState = vi.fn(
 		(
-			updater: CategoriesState | ((...args: [CategoriesState]) => CategoriesState),
+			updater:
+				| CategoriesState
+				| ((...args: [CategoriesState]) => CategoriesState),
 		) => {
 			state = typeof updater === "function" ? updater(state) : updater;
 		},
