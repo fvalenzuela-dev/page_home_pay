@@ -7,10 +7,10 @@ import type {
 } from "./categoriesScreenTypes";
 import type { CategoriesState } from "./categoriesState";
 
-type ToastCallbacks = {
+interface ToastCallbacks {
 	success: (_message: string) => void;
 	error: (_message: string) => void;
-};
+}
 
 export async function saveEdit(
 	api: CategoriesApi,

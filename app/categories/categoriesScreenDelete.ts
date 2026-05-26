@@ -2,10 +2,10 @@ import { getErrorMessage } from "./categoriesScreenErrors";
 import type { CategoriesApi, StateSetter } from "./categoriesScreenTypes";
 import { removeDeletedCategory } from "./categoriesState";
 
-type ToastCallbacks = {
+interface ToastCallbacks {
 	success: (_message: string) => void;
 	error: (_message: string) => void;
-};
+}
 
 export async function deleteCategory(
 	api: CategoriesApi,
