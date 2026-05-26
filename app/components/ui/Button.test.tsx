@@ -36,15 +36,33 @@ describe("Button", () => {
 		expect(markup).toContain("hover:bg-secondary-hover");
 	});
 
-	it("supports the warning variant with an accessible focus indicator", () => {
-		const markup = renderToStaticMarkup(
+	it("supports semantic success, info, warning, danger, and neutral variants", () => {
+		const successMarkup = renderToStaticMarkup(
+			<Button variant="success">Guardado</Button>,
+		);
+		const infoMarkup = renderToStaticMarkup(
+			<Button variant="info">Información</Button>,
+		);
+		const warningMarkup = renderToStaticMarkup(
 			<Button variant="warning">Cancelar</Button>,
 		);
+		const dangerMarkup = renderToStaticMarkup(
+			<Button variant="danger">Eliminar</Button>,
+		);
+		const neutralMarkup = renderToStaticMarkup(
+			<Button variant="neutral">Neutral</Button>,
+		);
 
-		expect(markup).toContain("bg-warning");
-		expect(markup).toContain("text-warning-foreground");
-		expect(markup).toContain("hover:bg-warning-hover");
-		expect(markup).toContain("focus-visible:outline-warning-focus");
+		expect(successMarkup).toContain("bg-success");
+		expect(successMarkup).toContain("text-success-foreground");
+		expect(infoMarkup).toContain("bg-info");
+		expect(infoMarkup).toContain("text-info-foreground");
+		expect(warningMarkup).toContain("bg-warning");
+		expect(warningMarkup).toContain("text-warning-foreground");
+		expect(warningMarkup).toContain("hover:bg-warning-hover");
+		expect(warningMarkup).toContain("focus-visible:outline-warning-focus");
+		expect(dangerMarkup).toContain("bg-destructive");
+		expect(neutralMarkup).toContain("bg-surface");
 	});
 
 	it("can render as a child link", () => {

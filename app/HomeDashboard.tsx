@@ -4,6 +4,9 @@ import {
 	CATEGORY_COLOR_OPTIONS,
 	type CategoryColor,
 } from "./categories/categoryOptions";
+import { useToastify } from "./hooks/use-toastify";
+import Button, { type ButtonProps } from "./components/ui/Button";
+import type { ToastInput, ToastVariant } from "./lib/toast-store";
 import {
 	DataTable,
 	DataTableColumnHeader,
@@ -93,31 +96,57 @@ export function getPaginatedHomeRecords(
 	};
 }
 
-const THEME_ACTION_COLOR_CLASSES: Record<CategoryColor, string> = {
-	primary: "text-primary",
-	secondary: "text-secondary",
-	success: "text-secondary",
-	danger: "text-destructive",
-	warning: "text-warning",
-	info: "text-primary",
-	neutral: "text-border",
+const THEME_ACTION_BUTTON_VARIANTS: Record<
+	CategoryColor,
+	ButtonProps["variant"]
+> = {
+	primary: "primary",
+	secondary: "secondary",
+	success: "success",
+	danger: "danger",
+	warning: "warning",
+	info: "info",
+	neutral: "neutral",
 };
+
+const THEME_ACTION_TOAST_VARIANTS: Record<CategoryColor, ToastVariant> = {
+	primary: "primary",
+	secondary: "secondary",
+	success: "success",
+	danger: "error",
+	warning: "warning",
+	info: "info",
+	neutral: "neutral",
+};
+
+export function getThemeActionToastInput(
+	option: (typeof CATEGORY_COLOR_OPTIONS)[number],
+): ToastInput {
+	return {
+		message: `Toastify ${option.label} activado.`,
+		position: "top-right",
+		title: option.label,
+		variant: THEME_ACTION_TOAST_VARIANTS[option.value],
+	};
+}
 
 function ThemeActionButton({
 	option,
 }: {
 	option: (typeof CATEGORY_COLOR_OPTIONS)[number];
 }) {
+	const toastify = useToastify();
+
 	return (
-		<button
-			className={`grid min-h-20 cursor-pointer gap-1 rounded-2xl border border-[color-mix(in_srgb,currentColor_34%,var(--outline-variant))] bg-[color-mix(in_srgb,currentColor_12%,var(--surface-container-lowest))] p-[0.9rem] text-left font-extrabold transition-[border-color,box-shadow,transform] duration-150 hover:-translate-y-px hover:shadow-[0_0.75rem_1.75rem_var(--shadow)] focus-visible:-translate-y-px focus-visible:shadow-[0_0.75rem_1.75rem_var(--shadow)] ${THEME_ACTION_COLOR_CLASSES[option.value]}`}
+		<Button
+			className="grid min-h-20 content-center gap-1 p-[0.9rem] text-left hover:shadow-[0_0.75rem_1.75rem_var(--shadow)] focus-visible:shadow-[0_0.75rem_1.75rem_var(--shadow)]"
 			type="button"
+			variant={THEME_ACTION_BUTTON_VARIANTS[option.value]}
+			onClick={() => toastify.showToast(getThemeActionToastInput(option))}
 		>
 			<span>{option.label}</span>
-			<small className="text-xs font-bold text-[var(--on-surface-variant)]">
-				{option.value}
-			</small>
-		</button>
+			<small className="text-xs font-bold opacity-80">{option.value}</small>
+		</Button>
 	);
 }
 
@@ -128,10 +157,10 @@ const THEME_ACTION_BUTTONS = CATEGORY_COLOR_OPTIONS.map((option) => (
 const CATEGORY_DOT_COLOR_CLASSES: Record<CategoryColor, string> = {
 	primary: "text-primary",
 	secondary: "text-secondary",
-	success: "text-secondary",
+	success: "text-success-foreground",
 	danger: "text-destructive",
 	warning: "text-warning",
-	info: "text-primary",
+	info: "text-info-foreground",
 	neutral: "text-border",
 };
 
@@ -208,7 +237,7 @@ export function HomeDashboardView({ records }: HomeDashboardViewProps) {
 		>
 			<article
 				className="rounded-3xl border border-[var(--outline-variant)] bg-[var(--surface-container-lowest)] p-6"
-				id="administración"
+				id="administracion"
 			>
 				<div className="mb-6 flex items-start justify-between gap-4 max-[560px]:grid max-[560px]:grid-cols-1">
 					<div>
@@ -242,7 +271,13 @@ export function HomeDashboardView({ records }: HomeDashboardViewProps) {
 				data={records}
 				columns={HOME_PAYMENT_GRID_COLUMNS}
 				getRowId={(record) => record.id}
-				searchColumnIds={["merchant", "category", "dueDate", "status", "amount"]}
+				searchColumnIds={[
+					"merchant",
+					"category",
+					"dueDate",
+					"status",
+					"amount",
+				]}
 				getSearchableRowValues={(record) => [STATUS_LABELS[record.status]]}
 				searchPlaceholder="Buscar pagos..."
 				totalSummary={(total) => `${total} registros`}

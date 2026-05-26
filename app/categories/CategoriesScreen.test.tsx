@@ -213,10 +213,10 @@ describe("CategoriesScreen", () => {
 
 		requireMarkup(markup, "Agua");
 		requireMarkup(markup, "categories-color-success");
-		requireMarkup(markup, "text-secondary");
+		requireMarkup(markup, "text-success-foreground");
 		requireMarkup(markup, "Internet");
 		requireMarkup(markup, "categories-color-info");
-		requireMarkup(markup, "text-primary");
+		requireMarkup(markup, "text-info-foreground");
 	});
 
 	it("opens create modal with default visual options", async () => {
@@ -232,8 +232,10 @@ describe("CategoriesScreen", () => {
 		requireMarkup(markup, "categories-color-primary");
 		requireMarkup(markup, "text-primary");
 		requireMarkup(markup, "text-secondary");
+		requireMarkup(markup, "text-success-foreground");
 		requireMarkup(markup, "text-warning");
 		requireMarkup(markup, "text-destructive");
+		requireMarkup(markup, "text-info-foreground");
 		requireMarkup(markup, "text-border");
 		requireMarkup(markup, 'value="home"');
 		expect(markup).not.toContain("Icono APK");
@@ -404,8 +406,9 @@ describe("CategoriesScreen", () => {
 		);
 		const columns = dataTable.props.columns as {
 			id?: string;
-			cell?: (..._args: [{ row: { original: (typeof baseState.categories)[number] } }]) =>
-				ReactNode;
+			cell?: (
+				..._args: [{ row: { original: (typeof baseState.categories)[number] } }]
+			) => ReactNode;
 		}[];
 		const actionsColumn = columns.find((column) => column.id === "actions");
 		const actionButtons = collectElements(
@@ -423,7 +426,8 @@ describe("CategoriesScreen", () => {
 				.onPreviousPage,
 		);
 		callHandler(
-			(dataTable.props.serverPagination as { onNextPage: () => void }).onNextPage,
+			(dataTable.props.serverPagination as { onNextPage: () => void })
+				.onNextPage,
 		);
 		callHandler(
 			(

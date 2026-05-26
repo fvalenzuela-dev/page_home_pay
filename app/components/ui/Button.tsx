@@ -12,6 +12,11 @@ const buttonVariants = cva(
 					"border border-primary bg-primary text-primary-foreground shadow-primary hover:-translate-y-px hover:bg-primary-hover hover:shadow-primary-lg focus-visible:outline-ring",
 				secondary:
 					"border border-secondary bg-secondary text-secondary-foreground hover:-translate-y-px hover:bg-secondary-hover focus-visible:outline-ring",
+				success:
+					"border border-success bg-success text-success-foreground shadow-success hover:-translate-y-px hover:shadow-success focus-visible:outline-success-foreground",
+				info: "border border-info bg-info text-info-foreground shadow-info hover:-translate-y-px hover:shadow-info focus-visible:outline-info-foreground",
+				neutral:
+					"border border-border bg-surface text-text hover:-translate-y-px hover:bg-accent focus-visible:outline-ring",
 				warning:
 					"border border-warning bg-warning text-warning-foreground hover:-translate-y-px hover:bg-warning-hover focus-visible:outline-warning-focus",
 				outline:

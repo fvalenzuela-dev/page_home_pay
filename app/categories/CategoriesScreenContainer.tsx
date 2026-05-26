@@ -2,6 +2,8 @@
 
 import { useState, type FormEvent } from "react";
 
+import { useToastify } from "../hooks/use-toastify";
+
 import { createCategoriesState, type CategoriesState } from "./categoriesState";
 import {
 	deleteCategory,
@@ -20,6 +22,7 @@ export default function CategoriesScreen({
 	initialState,
 }: CategoriesScreenProps) {
 	const api = useCategoriesApi();
+	const toasts = useToastify();
 	const [state, setState] = useState<CategoriesState>(() =>
 		createCategoriesState(initialState ?? { status: "loading" }),
 	);
@@ -29,13 +32,13 @@ export default function CategoriesScreen({
 	function submitEdit(event: FormEvent<HTMLFormElement>) {
 		event.preventDefault();
 		if (state.editDraft !== null) {
-			void saveEdit(api, state.editDraft, setState, setRefreshKey);
+			void saveEdit(api, state.editDraft, setState, setRefreshKey, toasts);
 		}
 	}
 
 	function confirmDelete() {
 		if (state.deleteCandidate !== null) {
-			void deleteCategory(api, state.deleteCandidate.id, setState);
+			void deleteCategory(api, state.deleteCandidate.id, setState, toasts);
 		}
 	}
 

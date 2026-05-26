@@ -45,8 +45,10 @@ export const CATEGORY_ICON_OPTIONS: CategoryOption<CategoryIcon>[] = [
 export const CATEGORY_COLOR_OPTIONS: CategoryOption<CategoryColor>[] = [
 	{ value: "primary", label: "Primary" },
 	{ value: "secondary", label: "Secondary" },
+	{ value: "success", label: "Success" },
 	{ value: "warning", label: "Warning" },
 	{ value: "danger", label: "Destructive" },
+	{ value: "info", label: "Info" },
 	{ value: "neutral", label: "Neutral" },
 ];
 

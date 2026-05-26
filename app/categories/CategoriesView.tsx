@@ -64,8 +64,6 @@ const stateMessageClassName =
 	"rounded-2xl border border-[var(--outline-variant)] bg-[var(--surface-container-low)] p-4 text-sm font-semibold text-[var(--on-surface-variant)]";
 const errorMessageClassName =
 	"rounded-2xl border border-[color-mix(in_srgb,var(--error)_35%,transparent)] bg-[color-mix(in_srgb,var(--error-container)_78%,transparent)] p-4 text-sm font-semibold text-[var(--error)]";
-const successMessageClassName =
-	"rounded-2xl border border-[color-mix(in_srgb,var(--secondary)_35%,transparent)] bg-[color-mix(in_srgb,var(--secondary-container)_42%,transparent)] p-4 text-sm font-semibold text-[var(--secondary)]";
 const iconPreviewBaseClassName =
 	"inline-grid size-11 place-items-center rounded-2xl bg-[color-mix(in_srgb,currentColor_14%,var(--surface-container-lowest))] text-xl shadow-[inset_0_0_0_1px_color-mix(in_srgb,currentColor_28%,transparent)]";
 const iconOptionPreviewClassName =
@@ -96,10 +94,10 @@ const modalActionsClassName =
 const CATEGORY_COLOR_CLASS_NAMES: Record<CategoryColor, string> = {
 	primary: "text-primary",
 	secondary: "text-secondary",
-	success: "text-secondary",
+	success: "text-success-foreground",
 	danger: "text-destructive",
 	warning: "text-warning",
-	info: "text-primary",
+	info: "text-info-foreground",
 	neutral: "text-border",
 };
 
@@ -165,7 +163,9 @@ function createCategoryColumns(
 			header: ({ column }) => (
 				<DataTableColumnHeader column={column} title="Nombre" />
 			),
-			cell: ({ row }) => <span className="font-semibold">{row.original.name}</span>,
+			cell: ({ row }) => (
+				<span className="font-semibold">{row.original.name}</span>
+			),
 		},
 		{
 			id: "actions",
@@ -425,11 +425,7 @@ function CategoriesPanelHeader(
 				<span className="rounded-full bg-[color-mix(in_srgb,#006a6a_14%,transparent)] px-3 py-1.5 text-sm font-bold text-[#006a6a]">
 					{props.state.totalItems} categorías
 				</span>
-				<Button
-					size="md"
-					type="button"
-					onClick={props.onOpenCreate}
-				>
+				<Button size="md" type="button" onClick={props.onOpenCreate}>
 					Agregar categoría
 				</Button>
 			</div>
@@ -452,11 +448,6 @@ function CategoriesPanelBody(
 
 	return (
 		<>
-			{props.state.successMessage !== null && (
-				<p className={successMessageClassName} role="status">
-					{props.state.successMessage}
-				</p>
-			)}
 			{props.state.status === "loading" && (
 				<p className={stateMessageClassName}>Cargando categorías…</p>
 			)}
@@ -498,10 +489,7 @@ function CategoriesPanelBody(
 
 function CategoriesPanel(props: CategoriesViewProps) {
 	return (
-		<section
-			className={panelClassName}
-			aria-label="Listado de categorías"
-		>
+		<section className={panelClassName} aria-label="Listado de categorías">
 			<CategoriesPanelHeader
 				state={props.state}
 				onOpenCreate={props.onOpenCreate}
@@ -522,7 +510,10 @@ export function CategoriesView(props: CategoriesViewProps) {
 	return (
 		<main className={categoriesShellClassName}>
 			<AppHeader homeHrefPrefix="/" />
-			<section className={heroSectionClassName} aria-labelledby="categories-title">
+			<section
+				className={heroSectionClassName}
+				aria-labelledby="categories-title"
+			>
 				<div className={heroCardClassName}>
 					<p className={eyebrowClassName}>Administración</p>
 					<h1 className={heroTitleClassName} id="categories-title">

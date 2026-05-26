@@ -34,11 +34,15 @@ describe("categoryOptions", () => {
 		expect(CATEGORY_COLOR_OPTIONS.map((option) => option.value)).toEqual([
 			"primary",
 			"secondary",
+			"success",
 			"warning",
 			"danger",
+			"info",
 			"neutral",
 		]);
+		expect(getCategoryColorLabel("success")).toBe("Success");
 		expect(getCategoryColorLabel("danger")).toBe("Destructive");
+		expect(getCategoryColorLabel("info")).toBe("Info");
 		expect(getCategoryColorLabel("neutral")).toBe("Neutral");
 		expect(getCategoryColorLabel("custom-color")).toBe("custom-color");
 	});
