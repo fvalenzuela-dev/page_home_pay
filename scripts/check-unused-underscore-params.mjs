@@ -1,51 +1,48 @@
-import { readdirSync, readFileSync } from "node:fs";
-import { extname, join } from "node:path";
 import ts from "typescript";
 
-const SOURCE_DIR = "app";
-const SOURCE_EXTENSIONS = new Set([".ts", ".tsx"]);
+const SOURCE_DIR = "app/";
 
-function isSourceFile(path) {
-	return SOURCE_EXTENSIONS.has(extname(path));
+function readTsConfig() {
+	const configPath = ts.findConfigFile(".", ts.sys.fileExists, "tsconfig.json");
+
+	if (configPath === undefined) {
+		throw new Error("Expected tsconfig.json to exist");
+	}
+
+	const configFile = ts.readConfigFile(configPath, ts.sys.readFile);
+
+	if (configFile.error !== undefined) {
+		throw new Error(
+			ts.flattenDiagnosticMessageText(configFile.error.messageText, "\n"),
+		);
+	}
+
+	return ts.parseJsonConfigFileContent(configFile.config, ts.sys, ".");
 }
 
-function collectFiles(directory) {
-	return readdirSync(directory, { withFileTypes: true }).flatMap((entry) => {
-		const path = join(directory, entry.name);
-
-		if (entry.isDirectory()) return collectFiles(path);
-		if (entry.isFile() && isSourceFile(path)) return [path];
-
-		return [];
-	});
+function isAppSourceFile(sourceFile) {
+	return (
+		!sourceFile.isDeclarationFile && sourceFile.fileName.startsWith(SOURCE_DIR)
+	);
 }
 
-function getSourceKind(path) {
-	return path.endsWith(".tsx") ? ts.ScriptKind.TSX : ts.ScriptKind.TS;
-}
-
-function getLineFinding(sourceFile, path, node, message) {
+function getLineFinding(sourceFile, node, message) {
 	const { line } = sourceFile.getLineAndCharacterOfPosition(
 		node.getStart(sourceFile),
 	);
 
-	return `${path}:${line + 1}: ${message}`;
+	return `${sourceFile.fileName}:${line + 1}: ${message}`;
 }
 
 function isTypeOnlyCallbackParameter(node) {
+	if (node.parent === undefined) return false;
+
 	return (
 		ts.isFunctionTypeNode(node.parent) || ts.isMethodSignature(node.parent)
 	);
 }
 
-function findCodacyUnusedParameterRisks(path) {
-	const sourceFile = ts.createSourceFile(
-		path,
-		readFileSync(path, "utf8"),
-		ts.ScriptTarget.Latest,
-		true,
-		getSourceKind(path),
-	);
+function findCodacyUnusedParameterRisks(sourceFile) {
 	const findings = [];
 
 	function visit(node) {
@@ -56,7 +53,6 @@ function findCodacyUnusedParameterRisks(path) {
 				findings.push(
 					getLineFinding(
 						sourceFile,
-						path,
 						node.name,
 						`remove leading underscore from parameter '${name}'`,
 					),
@@ -70,7 +66,6 @@ function findCodacyUnusedParameterRisks(path) {
 				findings.push(
 					getLineFinding(
 						sourceFile,
-						path,
 						node.name,
 						`use rest tuple syntax instead of named type-only callback parameter '${name}'`,
 					),
@@ -85,9 +80,12 @@ function findCodacyUnusedParameterRisks(path) {
 	return findings;
 }
 
-const findings = collectFiles(SOURCE_DIR).flatMap(
-	findCodacyUnusedParameterRisks,
-);
+const parsedConfig = readTsConfig();
+const program = ts.createProgram(parsedConfig.fileNames, parsedConfig.options);
+const findings = program
+	.getSourceFiles()
+	.filter(isAppSourceFile)
+	.flatMap(findCodacyUnusedParameterRisks);
 
 if (findings.length > 0) {
 	console.error(findings.join("\n"));
