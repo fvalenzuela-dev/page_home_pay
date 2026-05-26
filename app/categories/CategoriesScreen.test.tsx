@@ -433,7 +433,7 @@ describe("CategoriesScreen", () => {
 		callHandler(
 			(
 				dataTable.props.serverPagination as {
-					onPageSizeChange: (pageSize: number) => void;
+					onPageSizeChange: (...args: [number]) => void;
 				}
 			).onPageSizeChange,
 			10,

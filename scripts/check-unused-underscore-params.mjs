@@ -24,7 +24,21 @@ function getSourceKind(path) {
 	return path.endsWith(".tsx") ? ts.ScriptKind.TSX : ts.ScriptKind.TS;
 }
 
-function findUnderscoreParameters(path) {
+function getLineFinding(sourceFile, path, node, message) {
+	const { line } = sourceFile.getLineAndCharacterOfPosition(
+		node.getStart(sourceFile),
+	);
+
+	return `${path}:${line + 1}: ${message}`;
+}
+
+function isTypeOnlyCallbackParameter(node) {
+	return (
+		ts.isFunctionTypeNode(node.parent) || ts.isMethodSignature(node.parent)
+	);
+}
+
+function findCodacyUnusedParameterRisks(path) {
 	const sourceFile = ts.createSourceFile(
 		path,
 		readFileSync(path, "utf8"),
@@ -39,11 +53,24 @@ function findUnderscoreParameters(path) {
 			const name = node.name.text;
 
 			if (name !== "_" && name.startsWith("_")) {
-				const { line } = sourceFile.getLineAndCharacterOfPosition(
-					node.name.getStart(sourceFile),
-				);
 				findings.push(
-					`${path}:${line + 1}: remove leading underscore from parameter '${name}'`,
+					getLineFinding(
+						sourceFile,
+						path,
+						node.name,
+						`remove leading underscore from parameter '${name}'`,
+					),
+				);
+			}
+
+			if (isTypeOnlyCallbackParameter(node) && node.dotDotDotToken === undefined) {
+				findings.push(
+					getLineFinding(
+						sourceFile,
+						path,
+						node.name,
+						`use rest tuple syntax instead of named type-only callback parameter '${name}'`,
+					),
 				);
 			}
 		}
@@ -55,7 +82,7 @@ function findUnderscoreParameters(path) {
 	return findings;
 }
 
-const findings = collectFiles(SOURCE_DIR).flatMap(findUnderscoreParameters);
+const findings = collectFiles(SOURCE_DIR).flatMap(findCodacyUnusedParameterRisks);
 
 if (findings.length > 0) {
 	console.error(findings.join("\n"));
