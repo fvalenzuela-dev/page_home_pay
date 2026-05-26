@@ -404,16 +404,16 @@ describe("CategoriesScreen", () => {
 		const dataTable = asElement(
 			elements.find((element) => element.props.id === "categories-grid"),
 		);
-		type CategoryActionCellContext = {
-			row: { original: (typeof baseState.categories)[number] };
-		};
 		const columns = dataTable.props.columns as {
 			id?: string;
-			cell?: (context: CategoryActionCellContext) => ReactNode;
+			cell?: unknown;
 		}[];
 		const actionsColumn = columns.find((column) => column.id === "actions");
+		if (typeof actionsColumn?.cell !== "function") {
+			throw new Error("Expected actions column to render cells");
+		}
 		const actionButtons = collectElements(
-			actionsColumn?.cell?.({ row: { original: baseState.categories[0] } }),
+			actionsColumn.cell({ row: { original: baseState.categories[0] } }),
 		).filter((element) => element.type === "button");
 
 		for (const label of ["Agregar categoría", "Sí, eliminar"]) {
