@@ -7,38 +7,58 @@ import {
 } from "../../lib/toast-store";
 import { cn } from "../../lib/utils";
 
-const toastPositionClasses: Record<ToastPosition, string> = {
-	"top-right": "right-4 top-4 items-end",
-	"top-left": "left-4 top-4 items-start",
-	"bottom-right": "bottom-4 right-4 items-end",
-	"bottom-left": "bottom-4 left-4 items-start",
-	"top-center": "left-1/2 top-4 -translate-x-1/2 items-center",
-};
+function getToastPositionClasses(position: ToastPosition) {
+	switch (position) {
+		case "top-left":
+			return "left-4 top-4 items-start";
+		case "bottom-right":
+			return "bottom-4 right-4 items-end";
+		case "bottom-left":
+			return "bottom-4 left-4 items-start";
+		case "top-center":
+			return "left-1/2 top-4 -translate-x-1/2 items-center";
+		case "top-right":
+			return "right-4 top-4 items-end";
+	}
+}
 
-const toastVariantClasses: Record<Toast["variant"], string> = {
-	primary:
-		"border-primary/35 bg-primary text-primary-foreground shadow-primary",
-	secondary:
-		"border-secondary/70 bg-secondary text-secondary-foreground shadow-primary",
-	success:
-		"border-success/35 bg-success text-success-foreground shadow-success",
-	error:
-		"border-destructive/35 bg-destructive text-destructive-foreground shadow-destructive",
-	info: "border-info/35 bg-info text-info-foreground shadow-info",
-	warning:
-		"border-warning/35 bg-warning text-warning-foreground shadow-warning",
-	neutral: "border-border bg-surface text-text shadow-primary",
-};
+function getToastVariantClasses(variant: Toast["variant"]) {
+	switch (variant) {
+		case "primary":
+			return "border-primary/35 bg-primary text-primary-foreground shadow-primary";
+		case "secondary":
+			return "border-secondary/70 bg-secondary text-secondary-foreground shadow-primary";
+		case "success":
+			return "border-success/35 bg-success text-success-foreground shadow-success";
+		case "error":
+			return "border-destructive/35 bg-destructive text-destructive-foreground shadow-destructive";
+		case "warning":
+			return "border-warning/35 bg-warning text-warning-foreground shadow-warning";
+		case "neutral":
+			return "border-border bg-surface text-text shadow-primary";
+		case "info":
+			return "border-info/35 bg-info text-info-foreground shadow-info";
+	}
+}
 
-const toastVariantLabels: Record<Toast["variant"], string> = {
-	primary: "Primary",
-	secondary: "Secondary",
-	success: "Éxito",
-	error: "Error",
-	info: "Información",
-	warning: "Advertencia",
-	neutral: "Neutral",
-};
+function getToastVariantLabel(variant: Toast["variant"]) {
+	switch (variant) {
+		case "primary":
+			return "Primary";
+		case "secondary":
+			return "Secondary";
+		case "success":
+			return "Éxito";
+		case "error":
+			return "Error";
+		case "warning":
+			return "Advertencia";
+		case "neutral":
+			return "Neutral";
+		case "info":
+			return "Información";
+	}
+}
 
 export function ToastifyToast({
 	toast,
@@ -47,7 +67,7 @@ export function ToastifyToast({
 	toast: Toast;
 	dismissAction: (_id: string) => void;
 }) {
-	const title = toast.title ?? toastVariantLabels[toast.variant];
+	const title = toast.title ?? getToastVariantLabel(toast.variant);
 	const isError = toast.variant === "error";
 
 	return (
@@ -56,7 +76,7 @@ export function ToastifyToast({
 				"pointer-events-auto w-full max-w-sm rounded-2xl border px-4 py-3 text-sm font-semibold transition-[opacity,transform] duration-200",
 				toast.status === "visible" && "animate-toast-in",
 				toast.status === "exiting" && "animate-toast-out",
-				toastVariantClasses[toast.variant],
+				getToastVariantClasses(toast.variant),
 			)}
 			role={isError ? "alert" : "status"}
 			aria-live={isError ? "assertive" : "polite"}
@@ -72,7 +92,9 @@ export function ToastifyToast({
 					className="rounded-full px-2 py-1 text-lg leading-none opacity-80 transition hover:bg-white/20 hover:opacity-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-current"
 					type="button"
 					aria-label="Cerrar notificación"
-					onClick={() => dismissAction(toast.id)}
+					onClick={() => {
+						dismissAction(toast.id);
+					}}
 				>
 					×
 				</button>
@@ -96,7 +118,7 @@ export function ToastifyViewport({
 		<ol
 			className={cn(
 				"pointer-events-none fixed z-50 flex w-[calc(100vw-2rem)] max-w-sm flex-col gap-3",
-				toastPositionClasses[position],
+				getToastPositionClasses(position),
 			)}
 			aria-label="Notificaciones"
 		>
