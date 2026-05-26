@@ -39,18 +39,24 @@ type TimerKind = "auto" | "exit";
 
 type ToastifyState = {
 	toasts: Toast[];
-	showToast: (...args: [ToastInput]) => string;
-	dismissToast: (...args: [string]) => void;
+	showToast: (_toast: ToastInput) => string;
+	dismissToast: (_id: string) => void;
 	clearToasts: () => void;
 	success: (
-		...args: [string, Omit<ToastInput, "message" | "variant">?]
+		_message: string,
+		_options?: Omit<ToastInput, "message" | "variant">,
 	) => string;
 	error: (
-		...args: [string, Omit<ToastInput, "message" | "variant">?]
+		_message: string,
+		_options?: Omit<ToastInput, "message" | "variant">,
 	) => string;
-	info: (...args: [string, Omit<ToastInput, "message" | "variant">?]) => string;
+	info: (
+		_message: string,
+		_options?: Omit<ToastInput, "message" | "variant">,
+	) => string;
 	warning: (
-		...args: [string, Omit<ToastInput, "message" | "variant">?]
+		_message: string,
+		_options?: Omit<ToastInput, "message" | "variant">,
 	) => string;
 };
 
@@ -91,7 +97,7 @@ function setToastTimer(id: string, kind: TimerKind, timer: Timer) {
 function scheduleDismiss(
 	id: string,
 	duration: number,
-	dismissToast: (...args: [string]) => void,
+	dismissToast: (_id: string) => void,
 ) {
 	if (!Number.isFinite(duration) || duration <= 0) return;
 

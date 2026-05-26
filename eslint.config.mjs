@@ -9,7 +9,13 @@ const eslintConfig = [
 	...nextTypescript,
 	{
 		rules: {
-			"@typescript-eslint/no-unused-vars": "warn",
+			"@typescript-eslint/no-unused-vars": [
+				"warn",
+				{
+					varsIgnorePattern: "^_",
+					argsIgnorePattern: "^_",
+				},
+			],
 		},
 	}
 ];

@@ -406,14 +406,13 @@ describe("CategoriesScreen", () => {
 		);
 		const columns = dataTable.props.columns as {
 			id?: string;
-			cell?: unknown;
+			cell?: (
+				..._args: [{ row: { original: (typeof baseState.categories)[number] } }]
+			) => ReactNode;
 		}[];
 		const actionsColumn = columns.find((column) => column.id === "actions");
-		if (typeof actionsColumn?.cell !== "function") {
-			throw new Error("Expected actions column to render cells");
-		}
 		const actionButtons = collectElements(
-			actionsColumn.cell({ row: { original: baseState.categories[0] } }),
+			actionsColumn?.cell?.({ row: { original: baseState.categories[0] } }),
 		).filter((element) => element.type === "button");
 
 		for (const label of ["Agregar categoría", "Sí, eliminar"]) {
@@ -422,13 +421,22 @@ describe("CategoriesScreen", () => {
 			);
 			callHandler(asElement(button).props.onClick);
 		}
-		const serverPagination = dataTable.props.serverPagination as Record<
-			string,
-			unknown
-		>;
-		callHandler(serverPagination.onPreviousPage);
-		callHandler(serverPagination.onNextPage);
-		callHandler(serverPagination.onPageSizeChange, 10);
+		callHandler(
+			(dataTable.props.serverPagination as { onPreviousPage: () => void })
+				.onPreviousPage,
+		);
+		callHandler(
+			(dataTable.props.serverPagination as { onNextPage: () => void })
+				.onNextPage,
+		);
+		callHandler(
+			(
+				dataTable.props.serverPagination as {
+					onPageSizeChange: (_pageSize: number) => void;
+				}
+			).onPageSizeChange,
+			10,
+		);
 		for (const ariaLabel of ["Editar Luz", "Eliminar Luz"]) {
 			const button = actionButtons.find(
 				(candidate) => candidate.props["aria-label"] === ariaLabel,
