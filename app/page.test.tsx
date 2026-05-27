@@ -5,7 +5,7 @@ import {
 	type ReactNode,
 } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import HomeDashboard, {
 	HOME_PAYMENT_GRID_COLUMNS,
 	HomeDashboardView,
@@ -23,6 +23,11 @@ import {
 	type ColumnDef,
 } from "./components/ui/data-table/data-table";
 
+const themeMock = vi.hoisted(() => ({
+	resolvedTheme: "light",
+	setTheme: vi.fn(),
+}));
+
 vi.mock("@clerk/nextjs", () => ({
 	UserButton: (props: Record<string, unknown>) => (
 		<button data-testid="user-button" data-props={props} type="button">
@@ -31,8 +36,16 @@ vi.mock("@clerk/nextjs", () => ({
 	),
 }));
 
+vi.mock("next-themes", () => ({
+	useTheme: () => themeMock,
+}));
+
 type ElementProps = Record<string, unknown> & {
 	children?: ReactNode;
+};
+
+type ComponentElement = ReactElement<ElementProps> & {
+	type: (props: ElementProps) => ReactNode;
 };
 
 async function renderHomePageElement() {
@@ -106,12 +119,59 @@ function getClassNameFromTag(tagMarkup: string) {
 	return tagMarkup.match(/\sclass="([^"]*)"/i)?.[1] ?? "";
 }
 
+function isInputChecked(markup: string, inputId: string) {
+	return getOpeningTags(markup, "input").some(
+		(tagMarkup) =>
+			tagMarkup.toLowerCase().includes(`id="${inputId.toLowerCase()}"`) &&
+			tagMarkup.toLowerCase().includes("checked"),
+	);
+}
+
 function asElement(node: ReactNode): ReactElement<ElementProps> {
 	if (!isValidElement<ElementProps>(node)) {
 		throw new Error("Expected a React element");
 	}
 
 	return node;
+}
+
+function isComponentElement(
+	element: ReactElement<ElementProps>,
+): element is ComponentElement {
+	return typeof element.type === "function";
+}
+
+function renderCompositeNode(node: ReactNode): ReactNode {
+	if (!isValidElement<ElementProps>(node)) {
+		return node;
+	}
+
+	if (!isComponentElement(node)) {
+		return node;
+	}
+
+	const Component = node.type;
+
+	return renderCompositeNode(Component(node.props));
+}
+
+function findElementProps(
+	node: ReactNode,
+	predicate: (element: ReactElement<ElementProps>) => boolean,
+): ElementProps | undefined {
+	const renderedNode = renderCompositeNode(node);
+
+	if (!isValidElement<ElementProps>(renderedNode)) {
+		return undefined;
+	}
+
+	if (predicate(renderedNode)) {
+		return renderedNode.props;
+	}
+
+	return Children.toArray(renderedNode.props.children)
+		.map((child) => findElementProps(child, predicate))
+		.find((props) => props !== undefined);
 }
 
 function elementChildren(element: ReactElement<ElementProps>) {
@@ -144,6 +204,11 @@ function requireId(element: ReactElement<ElementProps>, expectedValue: string) {
 }
 
 describe("HomePage", () => {
+	beforeEach(() => {
+		themeMock.resolvedTheme = "light";
+		themeMock.setTheme.mockClear();
+	});
+
 	it("renders the application shell with the redesigned dashboard", async () => {
 		const main = await renderHomePageElement();
 		const [, heroNode, dashboardNode] = Children.toArray(main.props.children);
@@ -155,7 +220,7 @@ describe("HomePage", () => {
 
 		expect(main.type).toBe("main");
 		requireClassNameContains(main, "min-h-screen");
-		requireClassNameContains(main, "has-[#theme-switch:checked]");
+		requireClassNameContains(main, "[.dark_&]");
 		expect(main.props["data-theme"]).toBeUndefined();
 		requireClassNameContains(header, "sticky top-0");
 		expect(headerMarkup).toContain("Dashboard");
@@ -196,6 +261,34 @@ describe("HomePage", () => {
 		).toBe(true);
 		expect(markup).toContain("☀");
 		expect(markup).toContain("☾");
+		expect(isInputChecked(markup, "theme-switch")).toBe(false);
+	});
+
+	it("reflects the persisted dark theme in the header toggle", async () => {
+		themeMock.resolvedTheme = "dark";
+
+		const markup = await renderHomeHeaderMarkup();
+
+		expect(isInputChecked(markup, "theme-switch")).toBe(true);
+	});
+
+	it("persists theme changes through next-themes", async () => {
+		const header = await renderHomeHeaderElement();
+		const themeSwitchProps = findElementProps(
+			header,
+			(element) =>
+				element.type === "input" && element.props.id === "theme-switch",
+		);
+
+		if (typeof themeSwitchProps?.onChange !== "function") {
+			throw new Error("Expected theme switch to define an onChange handler");
+		}
+
+		themeSwitchProps.onChange({ currentTarget: { checked: true } });
+		themeSwitchProps.onChange({ currentTarget: { checked: false } });
+
+		expect(themeMock.setTheme).toHaveBeenNthCalledWith(1, "dark");
+		expect(themeMock.setTheme).toHaveBeenNthCalledWith(2, "light");
 	});
 
 	it("includes an account dropdown menu", async () => {
