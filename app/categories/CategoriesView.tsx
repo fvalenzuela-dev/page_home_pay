@@ -43,18 +43,10 @@ export interface CategoriesViewProps {
 const categoriesShellClassName =
 	"min-h-screen bg-[radial-gradient(circle_at_top_left,rgb(37_99_235_/_18%),transparent_28rem),linear-gradient(135deg,var(--surface),var(--surface-container-low))] p-4 text-[var(--on-surface)] transition-[background,color] duration-150 [--error-container:#ffdad6] [--error:#ba1a1a] [--on-primary:#ffffff] [--on-surface-variant:#434655] [--on-surface:#0b1c30] [--outline-variant:#c3c6d7] [--outline:#737686] [--primary-container:#2563eb] [--primary:#004ac6] [--secondary-container:#6cf8bb] [--secondary:#006c49] [--shadow:rgb(11_28_48_/_10%)] [--surface-container-high:#dce9ff] [--surface-container-low:#eff4ff] [--surface-container-lowest:#ffffff] [--surface-container:#e5eeff] [--surface-dim:#cbdbf5] [--surface:#f8f9ff] [color-scheme:light] [.dark_&]:[--error-container:#93000a] [.dark_&]:[--error:#ffb4ab] [.dark_&]:[--on-primary:#00174b] [.dark_&]:[--on-surface-variant:#c3c6d7] [.dark_&]:[--on-surface:#eaf1ff] [.dark_&]:[--outline-variant:#43556d] [.dark_&]:[--outline:#9ca3b4] [.dark_&]:[--primary-container:#2563eb] [.dark_&]:[--primary:#b4c5ff] [.dark_&]:[--secondary-container:#005236] [.dark_&]:[--secondary:#6ffbbe] [.dark_&]:[--shadow:rgb(0_0_0_/_28%)] [.dark_&]:[--surface-container-high:#2b3d55] [.dark_&]:[--surface-container-low:#182b44] [.dark_&]:[--surface-container-lowest:#13243a] [.dark_&]:[--surface-container:#213145] [.dark_&]:[--surface-dim:#213145] [.dark_&]:[--surface:#0b1c30] [.dark_&]:[color-scheme:dark] max-[560px]:p-3";
 
-const heroSectionClassName =
-	"mx-auto max-w-[1200px] pt-20 pb-8 max-[880px]:pt-8";
-const heroCardClassName =
-	"rounded-3xl border border-[var(--outline-variant)] bg-[var(--surface-container-lowest)] p-[clamp(2rem,5vw,4rem)]";
 const eyebrowClassName =
 	"m-0 text-xs leading-4 font-semibold tracking-[0.08em] text-[var(--on-surface-variant)] uppercase";
-const heroTitleClassName =
-	"mt-3 font-['Manrope',Inter,ui-sans-serif,system-ui,sans-serif] text-[clamp(2rem,5vw,4rem)] leading-[1.05] tracking-[-0.02em]";
-const heroDescriptionClassName =
-	"mt-6 max-w-[42rem] text-lg leading-[1.55] text-[var(--on-surface-variant)]";
 const panelClassName =
-	"mx-auto mb-12 max-w-[1200px] rounded-3xl border border-[var(--outline-variant)] bg-[var(--surface-container-lowest)] p-6";
+	"mx-auto mt-20 mb-12 max-w-[1200px] rounded-3xl border border-[var(--outline-variant)] bg-[var(--surface-container-lowest)] p-6 max-[880px]:mt-8";
 const panelHeaderClassName =
 	"mb-6 flex items-start justify-between gap-4 max-[640px]:grid max-[640px]:grid-cols-1";
 const panelTitleClassName =
@@ -513,22 +505,6 @@ export function CategoriesView(props: CategoriesViewProps) {
 	return (
 		<main className={categoriesShellClassName}>
 			<AppHeader homeHrefPrefix="/" />
-			<section
-				className={heroSectionClassName}
-				aria-labelledby="categories-title"
-			>
-				<div className={heroCardClassName}>
-					<p className={eyebrowClassName}>Administración</p>
-					<h1 className={heroTitleClassName} id="categories-title">
-						Categorías
-					</h1>
-					<p className={heroDescriptionClassName}>
-						Gestioná categorías de pagos y facturas con íconos y colores del
-						sistema.
-					</p>
-				</div>
-			</section>
-
 			<CategoriesPanel {...props} />
 			<EditDialog
 				state={props.state}

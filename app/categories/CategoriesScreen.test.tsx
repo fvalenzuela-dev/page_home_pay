@@ -165,6 +165,9 @@ describe("CategoriesScreen", () => {
 		requireMarkup(populated, "Sin icono");
 		requireMarkup(populated, "✓");
 		requireMarkup(populated, "categories-color-primary");
+		expect(populated).not.toContain(
+			"Gestioná categorías de pagos y facturas con íconos y colores del sistema.",
+		);
 		requireMarkup(populated, "Endpoint /categories");
 		requireMarkup(populated, "Listado paginado para administrar");
 		expect(populated).not.toContain("Registros");
