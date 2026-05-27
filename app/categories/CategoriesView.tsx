@@ -59,6 +59,8 @@ const panelHeaderClassName =
 	"mb-6 flex items-start justify-between gap-4 max-[640px]:grid max-[640px]:grid-cols-1";
 const panelTitleClassName =
 	"mt-2 font-['Manrope',Inter,ui-sans-serif,system-ui,sans-serif] text-[clamp(1.5rem,3vw,2rem)] leading-[1.15] tracking-[-0.02em]";
+const panelDescriptionClassName =
+	"mt-3 max-w-[36rem] text-sm leading-6 text-[var(--on-surface-variant)]";
 const mutedTextClassName = "text-[var(--on-surface-variant)]";
 const stateMessageClassName =
 	"rounded-2xl border border-[var(--outline-variant)] bg-[var(--surface-container-low)] p-4 text-sm font-semibold text-[var(--on-surface-variant)]";
@@ -419,7 +421,10 @@ function CategoriesPanelHeader(
 		<div className={panelHeaderClassName}>
 			<div>
 				<p className={eyebrowClassName}>Endpoint /categories</p>
-				<h2 className={panelTitleClassName}>Listado paginado</h2>
+				<h2 className={panelTitleClassName}>Categorías</h2>
+				<p className={panelDescriptionClassName}>
+					Listado paginado para administrar las categorías de pagos y facturas.
+				</p>
 			</div>
 			<div className="flex items-center gap-3 max-[640px]:grid max-[640px]:grid-cols-1">
 				<span className="rounded-full bg-[color-mix(in_srgb,#006a6a_14%,transparent)] px-3 py-1.5 text-sm font-bold text-[#006a6a]">
@@ -460,8 +465,6 @@ function CategoriesPanelBody(
 				props.state.categories.length > 0 && (
 					<DataTable
 						id="categories-grid"
-						eyebrow="Endpoint /categories"
-						title="Listado paginado"
 						data={props.state.categories}
 						columns={columns}
 						getRowId={(category) => category.id}
@@ -469,7 +472,7 @@ function CategoriesPanelBody(
 						searchPlaceholder="Buscar categorías..."
 						initialPageSize={props.state.limit}
 						pageSizeOptions={[10, 20, 25, 50]}
-						totalSummary={() => `${props.state.totalItems} categorías`}
+						totalSummary={(total) => `${total} visibles`}
 						paginationLabel="Paginación de categorías"
 						serverPagination={{
 							page: props.state.page,

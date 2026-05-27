@@ -36,6 +36,10 @@ function requireMarkup(markup: string, expected: string) {
 	}
 }
 
+function countMarkupOccurrences(markup: string, expected: string) {
+	return markup.split(expected).length - 1;
+}
+
 function asElement(node: ReactNode): ReactElement<ElementProps> {
 	if (!isValidElement<ElementProps>(node)) {
 		throw new Error("Expected a React element");
@@ -161,7 +165,16 @@ describe("CategoriesScreen", () => {
 		requireMarkup(populated, "Sin icono");
 		requireMarkup(populated, "✓");
 		requireMarkup(populated, "categories-color-primary");
+		requireMarkup(populated, "Endpoint /categories");
+		requireMarkup(populated, "Listado paginado para administrar");
+		expect(populated).not.toContain("Registros");
+		expect(populated).not.toContain("Categorías disponibles");
+		requireMarkup(populated, "1 categorías");
+		requireMarkup(populated, "2 visibles");
 		requireMarkup(populated, "Agregar categoría");
+		expect(countMarkupOccurrences(populated, "Endpoint /categories")).toBe(1);
+		expect(countMarkupOccurrences(populated, "Listado paginado")).toBe(1);
+		expect(countMarkupOccurrences(populated, "1 categorías")).toBe(1);
 		requireMarkup(populated, "Editar Luz");
 		requireMarkup(populated, "Eliminar Luz");
 		requireMarkup(populated, "bg-transparent");

@@ -19,8 +19,8 @@ export interface DataTableServerPagination {
 
 export interface DataTableProps<TData, TValue> {
 	id?: string;
-	eyebrow: ReactNode;
-	title: ReactNode;
+	eyebrow?: ReactNode;
+	title?: ReactNode;
 	data: TData[];
 	columns: ColumnDef<TData, TValue>[];
 	getRowId?: RowIdGetter<TData>;
