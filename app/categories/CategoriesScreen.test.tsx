@@ -167,7 +167,8 @@ describe("CategoriesScreen", () => {
 		requireMarkup(populated, "categories-color-primary");
 		requireMarkup(populated, "Endpoint /categories");
 		requireMarkup(populated, "Listado paginado para administrar");
-		requireMarkup(populated, "Categorías disponibles");
+		expect(populated).not.toContain("Registros");
+		expect(populated).not.toContain("Categorías disponibles");
 		requireMarkup(populated, "1 categorías");
 		requireMarkup(populated, "2 visibles");
 		requireMarkup(populated, "Agregar categoría");

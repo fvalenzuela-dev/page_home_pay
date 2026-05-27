@@ -465,8 +465,6 @@ function CategoriesPanelBody(
 				props.state.categories.length > 0 && (
 					<DataTable
 						id="categories-grid"
-						eyebrow="Registros"
-						title="Categorías disponibles"
 						data={props.state.categories}
 						columns={columns}
 						getRowId={(category) => category.id}
