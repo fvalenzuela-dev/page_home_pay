@@ -5,6 +5,10 @@ vi.mock("@clerk/nextjs", () => ({
 	UserButton: () => <button type="button">Perfil</button>,
 }));
 
+vi.mock("next-themes", () => ({
+	useTheme: () => ({ resolvedTheme: "light", setTheme: vi.fn() }),
+}));
+
 import { CategoriesView } from "./CategoriesView";
 import { createCategoriesState } from "./categoriesState";
 

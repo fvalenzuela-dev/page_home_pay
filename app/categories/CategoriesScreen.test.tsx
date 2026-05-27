@@ -18,6 +18,10 @@ vi.mock("@clerk/nextjs", () => ({
 	useAuth: () => ({ getToken }),
 }));
 
+vi.mock("next-themes", () => ({
+	useTheme: () => ({ resolvedTheme: "light", setTheme: vi.fn() }),
+}));
+
 async function loadScreen() {
 	return import("./CategoriesScreen");
 }

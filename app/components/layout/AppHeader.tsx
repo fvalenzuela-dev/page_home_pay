@@ -1,6 +1,7 @@
 "use client";
 
 import { UserButton } from "@clerk/nextjs";
+import { useTheme } from "next-themes";
 import Image from "next/image";
 import Link from "next/link";
 
@@ -17,7 +18,7 @@ interface AppHeaderProps {
 }
 
 const headerClassName =
-	"sticky top-0 z-10 -mx-4 -mt-4 flex w-[calc(100%+2rem)] items-center justify-between gap-5 border-b border-[var(--header-border)] bg-[var(--header-bg)] p-4 text-[var(--header-text)] shadow-primary backdrop-blur-md [--header-bg:rgb(255_255_255_/_0.92)] [--header-border:rgb(203_213_225)] [--header-muted:rgb(107_114_128)] [--header-primary:rgb(37_99_235)] [--header-surface:rgb(241_245_249)] [--header-text:rgb(17_24_39)] has-[#theme-switch:checked]:[--header-bg:rgb(15_23_42_/_0.94)] has-[#theme-switch:checked]:[--header-border:rgb(51_65_85)] has-[#theme-switch:checked]:[--header-muted:rgb(203_213_225)] has-[#theme-switch:checked]:[--header-primary:rgb(96_165_250)] has-[#theme-switch:checked]:[--header-surface:rgb(30_41_59)] has-[#theme-switch:checked]:[--header-text:rgb(241_245_249)] max-lg:grid max-lg:grid-cols-1 max-sm:-mx-3 max-sm:-mt-3 max-sm:w-[calc(100%+1.5rem)]";
+	"sticky top-0 z-10 -mx-4 -mt-4 flex w-[calc(100%+2rem)] items-center justify-between gap-5 border-b border-[var(--header-border)] bg-[var(--header-bg)] p-4 text-[var(--header-text)] shadow-primary backdrop-blur-md [--header-bg:rgb(255_255_255_/_0.92)] [--header-border:rgb(203_213_225)] [--header-muted:rgb(107_114_128)] [--header-primary:rgb(37_99_235)] [--header-surface:rgb(241_245_249)] [--header-text:rgb(17_24_39)] [.dark_&]:[--header-bg:rgb(15_23_42_/_0.94)] [.dark_&]:[--header-border:rgb(51_65_85)] [.dark_&]:[--header-muted:rgb(203_213_225)] [.dark_&]:[--header-primary:rgb(96_165_250)] [.dark_&]:[--header-surface:rgb(30_41_59)] [.dark_&]:[--header-text:rgb(241_245_249)] max-lg:grid max-lg:grid-cols-1 max-sm:-mx-3 max-sm:-mt-3 max-sm:w-[calc(100%+1.5rem)]";
 const logoClassName = "flex items-center";
 const logoImageClassName = "size-24 rounded-2xl object-contain";
 const navClassName =
@@ -138,13 +139,20 @@ function HeaderNavMenu({ item }: { item: NavigationMenuItem }) {
 }
 
 function ThemeToggle() {
+	const { resolvedTheme, setTheme } = useTheme();
+	const isDarkTheme = resolvedTheme === "dark";
+
 	return (
 		<label className={themeToggleClassName} htmlFor="theme-switch">
 			<input
+				checked={isDarkTheme}
 				className="peer absolute inset-0 m-0 cursor-pointer opacity-0"
 				id="theme-switch"
 				type="checkbox"
 				aria-label="Toggle dark and light theme"
+				onChange={(event) => {
+					setTheme(event.currentTarget.checked ? "dark" : "light");
+				}}
 			/>
 			<span
 				className="col-start-1 row-start-1 text-lg leading-none transition-[opacity,transform] duration-150 peer-checked:scale-75 peer-checked:-rotate-20 peer-checked:opacity-0"
